@@ -22,6 +22,7 @@ export function initMap() {
     map = new maplibregl.Map({
         container: 'map',
         style: styleUrl,
+        attributionControl: false,
         bounds: bounds,
         fitBoundsOptions: { padding: { top: 20, bottom: 180, left: 10, right: 10 } },
         pitch: 0,
@@ -58,12 +59,12 @@ export function toggleRoute(layerIdObj, element) {
     if (!map) return;
     const layerId = layerIdObj + 'Layer';
     const visibility = map.getLayoutProperty(layerId, 'visibility');
-    
+
     const newVisibility = (visibility === 'visible' || visibility === undefined) ? 'none' : 'visible';
     map.setLayoutProperty(layerId, 'visibility', newVisibility);
 
     const isVisible = newVisibility === 'visible';
-    
+
     document.querySelectorAll(`.chip[onclick*="${layerIdObj}"]`).forEach(el => {
         if (isVisible) {
             el.classList.add('active-route');
