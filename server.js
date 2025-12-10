@@ -24,8 +24,16 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+function getLogTime() {
+    const now = new Date();
+    return now.toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone: 'Asia/Jakarta'
+    });
+}
+
 app.post('/api/track', async (req, res) => {
-    console.log("[DATA MASUK]", req.body);
     const bus_id = req.body.bus_id;
     const latitude = parseFloat(req.body.latitude);
     const longitude = parseFloat(req.body.longitude);
@@ -33,6 +41,12 @@ app.post('/api/track', async (req, res) => {
     const gas_level = parseInt(req.body.gas_level);
 
     if (!bus_id) return res.status(400).send("Data invalid");
+
+    console.log(`\n==================================================`);
+    console.log(`📅 ${getLogTime()}`);
+    console.log(`🚌 ${bus_id}  |  📍 ${latitude}, ${longitude}`);
+    console.log(`⛽ Gas: ${gas_level}  |  🚀 Speed: ${speed} km/h`);
+    console.log(`==================================================`);
 
     const insertData = {
         bus_id,
@@ -42,7 +56,6 @@ app.post('/api/track', async (req, res) => {
         gas_level,
         created_at: new Date().toISOString()
     };
-    console.log("Insert ke DB:", insertData);
 
     const { data, error } = await supabase
         .from('bipol_tracker')
@@ -50,12 +63,12 @@ app.post('/api/track', async (req, res) => {
         .select();
 
     if (error) {
-        console.error("DB Error:", error);
+        console.error(`❌ [${getLogTime()}] DB Insert ERROR:`, error.message);
         if (error.cause) console.error("Cause:", error.cause);
         return res.status(500).send("DB Error");
     }
 
-    console.log("DB Success! Inserted:", data);
+    console.log(`✅ [${getLogTime()}] Saved to DB (ID: ${data[0].id})`);
     res.status(200).send("OK");
 });
 
