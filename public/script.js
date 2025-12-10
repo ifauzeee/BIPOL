@@ -2,8 +2,9 @@
 let map;
 let busMarkers = {};
 let stopMarkers = [];
-let showHistory = false;
+
 let lastAlert = 0;
+let followBusId = null;
 
 const stops = [
     { lng: 106.823983, lat: -6.371168, title: "Halte PNJ" },
@@ -20,14 +21,13 @@ rutePagi.forEach(c => bounds.extend(c));
 ruteSore.forEach(c => bounds.extend(c));
 
 function initMap() {
-
     const styleUrl = 'https://tiles.openfreemap.org/styles/bright';
 
     map = new maplibregl.Map({
         container: 'map',
         style: styleUrl,
         bounds: bounds,
-        fitBoundsOptions: { padding: 50 },
+        fitBoundsOptions: { padding: { top: 20, bottom: 180, left: 10, right: 10 } },
         pitch: 0,
         bearing: 0,
         antialias: true
@@ -37,40 +37,71 @@ function initMap() {
         addRoutes();
         try { add3DBuildings(); } catch (e) { console.error("3D Buildings error", e); }
         addStops();
-        setInterval(fetchData, 3000);
+
+        document.getElementById('skeleton-loader').classList.remove('hidden');
+        document.getElementById('empty-state').classList.add('hidden');
+
         fetchData();
+        setInterval(fetchData, 3000);
+
+        map.on('dragstart', () => { followBusId = null; });
+        map.on('touchmove', () => { followBusId = null; });
     });
+
     setupControls();
 }
 
 function addRoutes() {
     if (!map.getSource('rutePagi')) {
         map.addSource('rutePagi', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: rutePagi } } });
-        map.addLayer({ id: 'rutePagiLayer', type: 'line', source: 'rutePagi', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#BF1E2E', 'line-width': 5, 'line-opacity': 0.8 } });
+        map.addLayer({
+            id: 'rutePagiLayer', type: 'line', source: 'rutePagi',
+            layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+            paint: { 'line-color': '#BF1E2E', 'line-width': 5, 'line-opacity': 0.8 }
+        });
     }
+
     if (!map.getSource('ruteSore')) {
         map.addSource('ruteSore', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: ruteSore } } });
-        map.addLayer({ id: 'ruteSoreLayer', type: 'line', source: 'ruteSore', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#159BB3', 'line-width': 5, 'line-opacity': 0.8 } });
+        map.addLayer({
+            id: 'ruteSoreLayer', type: 'line', source: 'ruteSore',
+            layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+            paint: { 'line-color': '#159BB3', 'line-width': 5, 'line-opacity': 0.8 }
+        });
+    }
+
+    document.querySelectorAll('.chip').forEach(el => el.classList.add('active-route'));
+}
+
+function toggleRoute(layerIdObj, element) {
+    if (!map) return;
+    const layerId = layerIdObj + 'Layer';
+    const visibility = map.getLayoutProperty(layerId, 'visibility');
+
+    if (visibility === 'visible' || visibility === undefined) {
+        map.setLayoutProperty(layerId, 'visibility', 'none');
+        element.classList.remove('active-route');
+        element.querySelector('i').className = 'fa-solid fa-xmark';
+    } else {
+        map.setLayoutProperty(layerId, 'visibility', 'visible');
+        element.classList.add('active-route');
+        element.querySelector('i').className = 'fa-solid fa-check';
     }
 }
 
 function addStops() {
-
     stopMarkers.forEach(m => m.remove());
     stopMarkers = [];
-
     stops.forEach(stop => {
         const el = document.createElement('div');
         el.style.backgroundImage = "url('https://png.pngtree.com/png-clipart/20230321/original/pngtree-bus-stop-vector-icon-design-illustration-png-image_8997806.png')";
-        el.style.width = '35px'; el.style.height = '35px';
+        el.style.width = '30px'; el.style.height = '30px';
         el.style.backgroundSize = 'contain'; el.style.backgroundRepeat = 'no-repeat';
-        el.style.cursor = 'pointer';
 
         const marker = new maplibregl.Marker({ element: el })
             .setLngLat([stop.lng, stop.lat])
             .setPopup(new maplibregl.Popup({ offset: 25 }).setText(stop.title))
             .addTo(map);
-
         stopMarkers.push(marker);
     });
 }
@@ -78,20 +109,9 @@ function addStops() {
 function add3DBuildings() {
     const style = map.getStyle();
     if (!style || !style.sources) return;
-
-
     const vectorSource = Object.keys(style.sources).find(key => style.sources[key].type === 'vector');
 
-    if (!vectorSource) {
-        console.log("No vector source found for 3D buildings");
-        return;
-    }
-
-    const layers = style.layers;
-    const labelLayer = layers.find(layer => layer.type === 'symbol' && layer.layout['text-field']);
-    const labelLayerId = labelLayer ? labelLayer.id : undefined;
-
-    if (!map.getLayer('add-3d-buildings')) {
+    if (vectorSource && !map.getLayer('add-3d-buildings')) {
         map.addLayer({
             'id': 'add-3d-buildings',
             'source': vectorSource,
@@ -101,30 +121,18 @@ function add3DBuildings() {
             'minzoom': 14,
             'paint': {
                 'fill-extrusion-color': '#aaa',
-
                 'fill-extrusion-height': ['coalesce', ['get', 'height'], 0],
                 'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
                 'fill-extrusion-opacity': 0.6
             }
-        }, labelLayerId);
+        });
     }
 }
 
 function setupControls() {
     document.getElementById('recenterBtn').onclick = () => {
-        map.fitBounds(bounds, { padding: 50, pitch: 0, bearing: 0 });
-    };
-
-    const historyBtn = document.getElementById('historyBtn');
-    historyBtn.onclick = function () {
-        showHistory = !showHistory;
-        this.classList.toggle('active');
-        if (showHistory) {
-            fetchHistory();
-        } else {
-            if (map.getLayer('historyLayer')) map.removeLayer('historyLayer');
-            if (map.getSource('historySource')) map.removeSource('historySource');
-        }
+        followBusId = null;
+        map.fitBounds(bounds, { padding: { top: 20, bottom: 180, left: 10, right: 10 }, pitch: 0, bearing: 0 });
     };
 }
 
@@ -133,13 +141,27 @@ async function fetchData() {
         const res = await fetch('/api/bus/location');
         const json = await res.json();
         const data = json.data || [];
+
         const list = document.getElementById('bus-list');
+        const skeleton = document.getElementById('skeleton-loader');
+        const emptyState = document.getElementById('empty-state');
+
+        skeleton.classList.add('hidden');
+
         if (data.length === 0) {
-            list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-satellite-dish"></i><p>Menunggu sinyal...</p></div>';
+            emptyState.classList.remove('hidden');
+            Array.from(list.children).forEach(c => {
+                if (!c.classList.contains('skeleton-loader') && !c.classList.contains('empty-state')) c.remove();
+            });
             return;
+        } else {
+            emptyState.classList.add('hidden');
         }
 
-        list.innerHTML = '';
+        Array.from(list.children).forEach(c => {
+            if (!c.classList.contains('skeleton-loader') && !c.classList.contains('empty-state')) c.remove();
+        });
+
         const activeIds = new Set();
         data.forEach(bus => {
             activeIds.add(bus.bus_id);
@@ -147,72 +169,76 @@ async function fetchData() {
             updateSidebar(bus, list);
             calculateETA(bus);
             checkAlerts(bus);
+
+            if (followBusId === bus.bus_id) {
+                map.flyTo({ center: [bus.longitude, bus.latitude], speed: 0.5 });
+            }
         });
-        Object.keys(busMarkers).forEach(id => { if (!activeIds.has(id)) { busMarkers[id].remove(); delete busMarkers[id]; } });
-    } catch (e) { }
+
+        Object.keys(busMarkers).forEach(id => {
+            if (!activeIds.has(id)) {
+                busMarkers[id].remove();
+                delete busMarkers[id];
+            }
+        });
+    } catch (e) { console.error(e); }
 }
 
 function updateMarker(bus) {
     const pos = [bus.longitude, bus.latitude];
-
-
     const content = `<div class="iw-header"><img src="./images/bipol.png" class="iw-icon"><h3>${bus.bus_id}</h3></div><p>Speed: ${bus.speed} km/h<br>Gas: ${bus.gas_level}</p>`;
+
     if (busMarkers[bus.bus_id]) {
         busMarkers[bus.bus_id].setLngLat(pos);
         busMarkers[bus.bus_id].getPopup().setHTML(content);
     } else {
         const el = document.createElement('div');
+        el.className = 'bus-marker-icon';
         el.style.backgroundImage = 'url(/images/bipol.png)';
-        el.style.width = '50px';
-        el.style.height = '50px';
+        el.style.width = '48px';
+        el.style.height = '48px';
         el.style.backgroundSize = 'contain';
         el.style.backgroundRepeat = 'no-repeat';
         el.style.cursor = 'pointer';
-        busMarkers[bus.bus_id] = new maplibregl.Marker({ element: el }).setLngLat(pos).setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(content)).addTo(map);
+
+        const pulse = document.createElement('div');
+        pulse.className = 'marker-pulse';
+        el.appendChild(pulse);
+
+        el.onclick = () => {
+            followBusId = bus.bus_id;
+            map.flyTo({ center: pos, zoom: 17 });
+        };
+
+        busMarkers[bus.bus_id] = new maplibregl.Marker({ element: el })
+            .setLngLat(pos)
+            .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(content))
+            .addTo(map);
     }
 }
 
 function updateSidebar(bus, list) {
     const item = document.createElement('div');
     item.className = 'bus-item';
+    if (followBusId === bus.bus_id) item.classList.add('active-focus');
+
     let statusDot = bus.speed < 1 ? 'dot-gray' : 'dot-green';
     if (bus.gas_level > 250) statusDot = 'dot-red';
-    item.innerHTML = `<div class="bus-icon-wrapper"><img src="./images/bipol.png"></div><div class="bus-info"><h4>${bus.bus_id} <span class="status-dot ${statusDot}"></span></h4><p><span><i class="fa-solid fa-gauge"></i> ${bus.speed}</span> <span><i class="fa-solid fa-fire"></i> ${bus.gas_level}</span></p></div>`;
+
+    item.innerHTML = `
+        <div class="bus-icon-wrapper"><img src="./images/bipol.png"></div>
+        <div class="bus-info">
+            <h4>${bus.bus_id} <span class="status-dot ${statusDot}"></span></h4>
+            <p><span><i class="fa-solid fa-gauge"></i> ${bus.speed} km/h</span> &bull; <span><i class="fa-solid fa-fire"></i> ${bus.gas_level}</span></p>
+        </div>`;
+
     item.onclick = () => {
+        followBusId = bus.bus_id;
         map.flyTo({ center: [bus.longitude, bus.latitude], zoom: 17.5, speed: 1.2 });
+        document.querySelectorAll('.bus-item').forEach(i => i.classList.remove('active-focus'));
+        item.classList.add('active-focus');
     };
     list.appendChild(item);
-}
-
-async function fetchHistory() {
-    try {
-        const res = await fetch('/api/bus/history');
-        const json = await res.json();
-
-        if (!json.data || json.data.length === 0) return;
-
-        const points = json.data.map(p => [p.lng, p.lat]);
-
-        if (map.getLayer('historyLayer')) map.removeLayer('historyLayer');
-        if (map.getSource('historySource')) map.removeSource('historySource');
-
-        map.addSource('historySource', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: points } } });
-
-        map.addLayer({
-            id: 'historyLayer',
-            type: 'line',
-            source: 'historySource',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#e67e22', 'line-width': 4, 'line-dasharray': [2, 2] }
-        });
-
-        if (points.length > 0) {
-            const bounds = new maplibregl.LngLatBounds();
-            points.forEach(p => bounds.extend(p));
-            map.fitBounds(bounds, { padding: 50 });
-        }
-
-    } catch (e) { console.error("Gagal ambil history", e); }
 }
 
 function calculateETA(bus) {
@@ -225,11 +251,15 @@ function calculateETA(bus) {
         if (dist < minDist) { minDist = dist; nearestStop = stop.title; }
     });
     const etaEl = document.getElementById('eta-display');
+    const displaySpeed = (bus.speed && bus.speed > 1) ? bus.speed : 20;
+
     if (minDist < 0.05) {
-        etaEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Tiba di ${nearestStop}`; etaEl.classList.remove('hidden');
+        etaEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Tiba di ${nearestStop}`;
+        etaEl.classList.remove('hidden');
     } else {
-        const time = Math.ceil((minDist / Math.max(bus.speed, 20)) * 60);
-        etaEl.innerHTML = `<i class="fa-solid fa-clock"></i> ${time} min ke ${nearestStop}`; etaEl.classList.remove('hidden');
+        const time = Math.ceil((minDist / displaySpeed) * 60);
+        etaEl.innerHTML = `<i class="fa-solid fa-clock"></i> ${time} min ke ${nearestStop}`;
+        etaEl.classList.remove('hidden');
     }
 }
 
@@ -241,3 +271,28 @@ function checkAlerts(bus) {
 }
 
 initMap();
+
+function switchTab(tab) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+    const sheet = document.querySelector('.bottom-sheet');
+
+    if (tab === 'home') {
+        sheet.classList.remove('hidden');
+        map.flyTo({ padding: { bottom: 200 } });
+    } else if (tab === 'map') {
+        sheet.classList.add('hidden');
+        map.flyTo({ padding: { bottom: 0 } });
+
+        map.fitBounds(bounds, { padding: 50 });
+    } else if (tab === 'announcement') {
+        Swal.fire({
+            title: 'Pengumuman',
+            html: '<div style="text-align:left"><p>📢 <b>Jadwal Baru:</b><br>Mulai 1 Januari 2025, jadwal bus Bipol diperpanjang hingga pukul 20:00 WIB.</p><hr><p>🚧 <b>Info Lalu Lintas:</b><br>Jalan Margonda sedang ada perbaikan, harap maklum jika ada keterlambatan.</p></div>',
+            icon: 'info',
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: '#BF1E2E'
+        });
+    }
+}

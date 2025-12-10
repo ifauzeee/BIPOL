@@ -84,13 +84,36 @@ client.on('message', (topic, message) => {
         if (!data.bus_id || !data.latitude || !data.longitude) return;
 
         const bus_id = data.bus_id;
+        const lat = parseFloat(data.latitude);
+        const lng = parseFloat(data.longitude);
+        let speed = parseFloat(data.speed) || 0;
+        const now = new Date();
+
+
+        if (speed === 0 && busData[bus_id]) {
+            try {
+                const prev = busData[bus_id];
+                const prevTime = new Date(prev.timestamp);
+                const timeDiff = (now - prevTime) / 1000;
+
+                if (timeDiff > 0 && timeDiff < 60) {
+                    const dist = calculateDistance(prev.latitude, prev.longitude, lat, lng);
+
+                    if (dist > 3) {
+                        speed = (dist / timeDiff) * 3.6;
+                        speed = Math.round(speed * 10) / 10;
+                    }
+                }
+            } catch (err) { console.error("Calc speed error:", err); }
+        }
+
         const currentData = {
             bus_id: bus_id,
-            latitude: parseFloat(data.latitude),
-            longitude: parseFloat(data.longitude),
+            latitude: lat,
+            longitude: lng,
             gas_level: parseInt(data.gas_level) || 0,
-            speed: parseFloat(data.speed) || 0,
-            timestamp: new Date().toISOString()
+            speed: speed,
+            timestamp: now.toISOString()
         };
 
         busData[bus_id] = currentData;
@@ -102,15 +125,27 @@ client.on('message', (topic, message) => {
         });
         if (historyData.length > 500) historyData.shift();
 
-        console.log(`[LIVE] ${bus_id} updated.`);
+        console.log(`[LIVE] ${bus_id} updated. Speed: ${speed} km/h`);
 
     } catch (e) {
         console.error("[MQTT ERROR]", e.message);
     }
 });
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
 
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
+    return R * c;
+}
 
 app.post('/api/track', (req, res) => {
     const { latitude, longitude, gas_level, speed, bus_id } = req.body;
