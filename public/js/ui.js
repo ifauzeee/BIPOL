@@ -152,11 +152,13 @@ export function switchTab(tab) {
 
     const sheet = document.querySelector('.bottom-sheet');
     const infoPage = document.getElementById('info-page');
+    const faqPage = document.getElementById('faq-page');
     const routeView = document.getElementById('route-view');
 
     if (tab === 'home') {
         sheet.classList.remove('hidden');
         infoPage.classList.remove('active-page');
+        faqPage.classList.remove('active-page');
         routeView.classList.remove('active-page');
 
         if (getFollowBusId()) {
@@ -182,6 +184,7 @@ export function switchTab(tab) {
     } else if (tab === 'map') {
         sheet.classList.add('hidden');
         infoPage.classList.remove('active-page');
+        faqPage.classList.remove('active-page');
         routeView.classList.add('active-page');
 
         getMap().resize();
@@ -193,7 +196,13 @@ export function switchTab(tab) {
     } else if (tab === 'announcement') {
         sheet.classList.add('hidden');
         routeView.classList.remove('active-page');
+        faqPage.classList.remove('active-page');
         infoPage.classList.add('active-page');
+    } else if (tab === 'faq') {
+        sheet.classList.add('hidden');
+        routeView.classList.remove('active-page');
+        infoPage.classList.remove('active-page');
+        faqPage.classList.add('active-page');
     }
 }
 

@@ -29,6 +29,12 @@ export function initMap() {
         bearing: 0,
         antialias: true
     });
+
+    map.on('load', () => {
+        const initialZoom = map.getZoom();
+        map.setMinZoom(initialZoom);
+    });
+
     return map;
 }
 
@@ -38,7 +44,12 @@ export function addRoutes() {
         map.addLayer({
             id: 'rutePagiLayer', type: 'line', source: 'rutePagi',
             layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
-            paint: { 'line-color': '#BF1E2E', 'line-width': 5, 'line-opacity': 0.8 }
+            paint: {
+                'line-color': '#BF1E2E',
+                'line-width': 4,
+                'line-opacity': 0.9,
+                'line-offset': -3
+            }
         });
     }
 
@@ -47,7 +58,12 @@ export function addRoutes() {
         map.addLayer({
             id: 'ruteSoreLayer', type: 'line', source: 'ruteSore',
             layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
-            paint: { 'line-color': '#159BB3', 'line-width': 5, 'line-opacity': 0.8 }
+            paint: {
+                'line-color': '#159BB3',
+                'line-width': 4,
+                'line-opacity': 0.9,
+                'line-offset': 3
+            }
         });
     }
 

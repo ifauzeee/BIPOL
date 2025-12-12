@@ -20,7 +20,28 @@
 </head>
 
 <body>
-    <div id="map"></div>
+    <a href="#bus-list" class="skip-link">Skip to content</a>
+
+    <div class="offline-indicator" id="offline-indicator">
+        <i class="fa-solid fa-wifi"></i>
+        <span>Mode Offline - Menampilkan data tersimpan</span>
+    </div>
+
+    <div class="pwa-install-prompt" id="pwa-install-prompt">
+        <div class="prompt-icon">
+            <i class="fa-solid fa-download"></i>
+        </div>
+        <div class="prompt-text">
+            <h4>Install Bipol Tracker</h4>
+            <p>Akses lebih cepat dari homescreen</p>
+        </div>
+        <div class="prompt-actions">
+            <button class="btn-later" onclick="dismissInstallPrompt()">Nanti</button>
+            <button class="btn-install" onclick="installPWA()">Install</button>
+        </div>
+    </div>
+
+    <div id="map" role="application" aria-label="Peta pelacakan bus"></div>
 
     <div class="floating-controls">
         <a href="/admin" class="fab-btn admin-btn" title="Admin Panel" aria-label="Admin Panel">
@@ -69,6 +90,156 @@
             <h2><i class="fa-solid fa-bullhorn"></i> Info & Pengumuman</h2>
         </div>
         <div class="page-content" id="dynamic-info-list">
+        </div>
+    </div>
+
+    <div id="faq-page" class="page-view">
+        <div class="page-header">
+            <h2><i class="fa-solid fa-circle-question"></i> FAQ & Panduan</h2>
+        </div>
+        <div class="page-content faq-content">
+            <div class="faq-intro">
+                <p>Selamat datang di Bipol Tracker! Berikut penjelasan fitur-fitur yang tersedia di aplikasi ini.</p>
+            </div>
+
+            <div class="faq-section">
+                <h3><i class="fa-solid fa-bus"></i> Status Armada</h3>
+
+                <div class="faq-item">
+                    <div class="faq-icon status-green"><i class="fa-solid fa-bus"></i></div>
+                    <div class="faq-text">
+                        <h4>Berjalan <span class="status-dot dot-green"></span></h4>
+                        <p>Bus sedang bergerak dengan kecepatan lebih dari 0 km/h. Status ini menunjukkan armada aktif
+                            beroperasi di jalur.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-icon status-yellow"><i class="fa-solid fa-circle-pause"></i></div>
+                    <div class="faq-text">
+                        <h4>Berhenti <span class="status-dot dot-yellow"></span></h4>
+                        <p>Bus berhenti sementara (kecepatan 0 km/h) kurang dari 5 menit. Kemungkinan sedang
+                            menurunkan/menaikkan penumpang atau berhenti di lampu merah.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-icon status-gray"><i class="fa-solid fa-square-parking"></i></div>
+                    <div class="faq-text">
+                        <h4>Parkir <span class="status-dot dot-gray"></span></h4>
+                        <p>Bus sudah berhenti lebih dari 5 menit. Kemungkinan sedang parkir, istirahat, atau tidak
+                            beroperasi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-icon status-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="faq-text">
+                        <h4>Gas Tinggi <span class="status-dot dot-red"></span></h4>
+                        <p>Sensor mendeteksi kadar gas berbahaya di dalam bus melebihi batas aman (>600). Segera periksa
+                            kondisi armada!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h3><i class="fa-solid fa-clock"></i> Estimasi Waktu (ETA)</h3>
+                <div class="faq-item">
+                    <div class="faq-icon status-blue"><i class="fa-solid fa-location-dot"></i></div>
+                    <div class="faq-text">
+                        <h4>Perkiraan Tiba</h4>
+                        <p>Menampilkan estimasi waktu bus tiba di halte terdekat berdasarkan jarak dan kecepatan saat
+                            ini. Contoh: "5 min ke Halte PNJ".</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h3><i class="fa-solid fa-route"></i> Fitur Rute</h3>
+                <div class="faq-item">
+                    <div class="faq-icon status-orange"><i class="fa-solid fa-sun"></i></div>
+                    <div class="faq-text">
+                        <h4>Rute Pagi (06:30 - 10:00)</h4>
+                        <p>Jalur keberangkatan pagi dari terminal ke kampus PNJ. Aktifkan untuk melihat rute di peta.
+                        </p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-icon status-purple"><i class="fa-solid fa-cloud-moon"></i></div>
+                    <div class="faq-text">
+                        <h4>Rute Sore (14:00 - 18:00)</h4>
+                        <p>Jalur kepulangan sore dari kampus PNJ ke terminal. Aktifkan untuk melihat rute di peta.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h3><i class="fa-solid fa-gauge"></i> Informasi Sensor</h3>
+                <div class="faq-item">
+                    <div class="faq-icon status-blue"><i class="fa-solid fa-gauge"></i></div>
+                    <div class="faq-text">
+                        <h4>Kecepatan (Speed)</h4>
+                        <p>Kecepatan bus dalam satuan km/jam yang diambil dari GPS tracker.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-icon status-red"><i class="fa-solid fa-fire"></i></div>
+                    <div class="faq-text">
+                        <h4>Level Gas</h4>
+                        <p>Nilai sensor gas di dalam bus. Nilai di atas 600 dianggap berbahaya dan akan memicu
+                            peringatan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h3><i class="fa-solid fa-map"></i> Penggunaan Peta</h3>
+                <div class="faq-item">
+                    <div class="faq-icon status-blue"><i class="fa-solid fa-hand-pointer"></i></div>
+                    <div class="faq-text">
+                        <h4>Klik Bus di Daftar</h4>
+                        <p>Klik item bus di daftar armada untuk fokus dan mengikuti pergerakan bus tersebut di peta.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-icon status-gray"><i class="fa-solid fa-location-crosshairs"></i></div>
+                    <div class="faq-text">
+                        <h4>Tombol Reset Lokasi</h4>
+                        <p>Klik tombol ini untuk mengembalikan tampilan peta ke posisi default dan berhenti mengikuti
+                            bus.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section lost-items-section">
+                <h3><i class="fa-solid fa-box-open"></i> Barang Ketinggalan</h3>
+                <div class="lost-items-intro">
+                    <p><i class="fa-solid fa-info-circle"></i> Kehilangan barang di bus? Isi form di bawah ini dan kami
+                        akan membantu mencarikan barang Anda.</p>
+                </div>
+                <form id="lostItemForm" class="lost-item-form" onsubmit="submitLostItem(event)">
+                    <div class="form-group">
+                        <label for="busPlate"><i class="fa-solid fa-bus"></i> Nomor Plat Bus</label>
+                        <input type="text" id="busPlate" name="busPlate" placeholder="Contoh: B 1234 ABC" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="waNumber"><i class="fa-brands fa-whatsapp"></i> Nomor WhatsApp Anda</label>
+                        <input type="tel" id="waNumber" name="waNumber" placeholder="Contoh: 08123456789" required
+                            pattern="[0-9]+" inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+                    <div class="form-group">
+                        <label for="lostMessage"><i class="fa-solid fa-message"></i> Deskripsi Barang</label>
+                        <textarea id="lostMessage" name="lostMessage" rows="4"
+                            placeholder="Jelaskan barang yang hilang, ciri-ciri, dan lokasi terakhir Anda melihatnya..."
+                            required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit-lost">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Laporan
+                    </button>
+                </form>
+            </div>
+
         </div>
     </div>
 
@@ -124,15 +295,204 @@
         <div id="caption"></div>
     </div>
 
-    <nav class="mobile-nav">
-        <div class="nav-item" onclick="switchTab('map')"><i class="fa-solid fa-map-location-dot"></i><span>Rute</span>
+    <nav class="mobile-nav" role="navigation" aria-label="Menu utama">
+        <div class="nav-item" onclick="switchTab('map')" role="button" tabindex="0" aria-label="Lihat Rute">
+            <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i><span>Rute</span>
         </div>
-        <div class="nav-item active" onclick="switchTab('home')"><i class="fa-solid fa-house"></i><span>Home</span>
+        <div class="nav-item active" onclick="switchTab('home')" role="button" tabindex="0" aria-label="Halaman Utama"
+            aria-current="page">
+            <i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span>
         </div>
-        <div class="nav-item" onclick="switchTab('announcement')"><i class="fa-solid fa-bullhorn"></i><span>Info</span>
+        <div class="nav-item" onclick="switchTab('announcement')" role="button" tabindex="0"
+            aria-label="Info dan Pengumuman">
+            <i class="fa-solid fa-bullhorn" aria-hidden="true"></i><span>Info</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('faq')" role="button" tabindex="0" aria-label="FAQ dan Panduan">
+            <i class="fa-solid fa-circle-question" aria-hidden="true"></i><span>FAQ</span>
         </div>
     </nav>
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+    <script>
+        const RATE_LIMIT_KEY = 'lastLostItemSubmit';
+        const RATE_LIMIT_MINUTES = 5;
+
+        async function submitLostItem(event) {
+            event.preventDefault();
+
+            const lastSubmit = localStorage.getItem(RATE_LIMIT_KEY);
+            const now = Date.now();
+
+            if (lastSubmit) {
+                const timePassed = (now - parseInt(lastSubmit)) / 1000 / 60;
+                if (timePassed < RATE_LIMIT_MINUTES) {
+                    const remaining = Math.ceil(RATE_LIMIT_MINUTES - timePassed);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Mohon Tunggu',
+                        html: `Anda baru saja mengirim laporan.<br>Silakan tunggu <b>${remaining} menit</b> lagi untuk mengirim laporan baru.`,
+                        confirmButtonColor: '#BF1E2E'
+                    });
+                    return;
+                }
+            }
+
+            const busPlate = document.getElementById('busPlate').value.trim();
+            const waNumber = document.getElementById('waNumber').value.trim();
+            const lostMessage = document.getElementById('lostMessage').value.trim();
+
+            if (!busPlate || !waNumber || !lostMessage) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Form Belum Lengkap',
+                    text: 'Mohon isi semua field yang diperlukan',
+                    confirmButtonColor: '#BF1E2E'
+                });
+                return;
+            }
+
+            if (!/^[0-9]+$/.test(waNumber)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor WhatsApp Tidak Valid',
+                    text: 'Nomor WhatsApp hanya boleh berisi angka',
+                    confirmButtonColor: '#BF1E2E'
+                });
+                return;
+            }
+
+            if (waNumber.length < 10 || waNumber.length > 15) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor WhatsApp Tidak Valid',
+                    text: 'Nomor WhatsApp harus 10-15 digit',
+                    confirmButtonColor: '#BF1E2E'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Mengirim Laporan...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const response = await fetch('/api/lost-items', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bus_plate: busPlate,
+                        whatsapp_number: waNumber,
+                        message: lostMessage
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Gagal mengirim laporan');
+                }
+
+                localStorage.setItem(RATE_LIMIT_KEY, now.toString());
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Laporan Diterima',
+                    text: 'Terima kasih! Laporan Anda telah kami terima dan akan segera ditindaklanjuti.',
+                    confirmButtonColor: '#10b981'
+                });
+
+                document.getElementById('lostItemForm').reset();
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengirim',
+                    text: error.message || 'Terjadi kesalahan, silakan coba lagi',
+                    confirmButtonColor: '#BF1E2E'
+                });
+            }
+        }
+
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => {
+                if (!localStorage.getItem('pwaPromptDismissed')) {
+                    document.getElementById('pwa-install-prompt').classList.add('show');
+                }
+            }, 30000);
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((result) => {
+                    if (result.outcome === 'accepted') {
+                        showToast('Aplikasi berhasil diinstall!', 'success');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('pwa-install-prompt').classList.remove('show');
+                });
+            }
+        }
+
+        function dismissInstallPrompt() {
+            document.getElementById('pwa-install-prompt').classList.remove('show');
+            localStorage.setItem('pwaPromptDismissed', 'true');
+        }
+
+        window.addEventListener('online', () => {
+            document.getElementById('offline-indicator').classList.remove('show');
+            showToast('Koneksi pulih', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            document.getElementById('offline-indicator').classList.add('show');
+            showToast('Mode offline aktif', 'warning');
+        });
+
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast-notification');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function triggerHaptic() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        document.querySelectorAll('.nav-item, .fab-btn, .bus-item').forEach(el => {
+            el.addEventListener('click', function (e) {
+                triggerHaptic();
+
+                const ripple = document.createElement('span');
+                ripple.className = 'touch-ripple';
+                ripple.style.left = e.offsetX + 'px';
+                ripple.style.top = e.offsetY + 'px';
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        if (!navigator.onLine) {
+            document.getElementById('offline-indicator').classList.add('show');
+        }
+    </script>
 </body>
 
 </html>
