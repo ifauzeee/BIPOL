@@ -35,8 +35,8 @@
             <button onclick="switchTab('geofence')" class="nav-item" id="nav-geofence">
                 <i class="fa-solid fa-route"></i> Geofence
             </button>
-            <button onclick="switchTab('lostitems')" class="nav-item" id="nav-lostitems">
-                <i class="fa-solid fa-box-open"></i> Lost Items
+            <button onclick="switchTab('feedback')" class="nav-item" id="nav-feedback">
+                <i class="fa-solid fa-comments"></i> Feedback
             </button>
             <button onclick="switchTab('settings')" class="nav-item" id="nav-settings">
                 <i class="fa-solid fa-sliders"></i> Settings
@@ -301,21 +301,44 @@
             </div>
         </div>
 
-        <div id="lostitems-section" class="section-container">
-            <div class="table-glass">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Waktu</th>
-                            <th>Plat Bus</th>
-                            <th>WhatsApp</th>
-                            <th>Pesan</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lostitems-table-body"></tbody>
-                </table>
+        <div id="feedback-section" class="section-container">
+            <div class="sub-nav">
+                <button class="sub-nav-item active" onclick="switchSubTab('lostitems')" id="subnav-lostitems">Lost Items</button>
+                <button class="sub-nav-item" onclick="switchSubTab('general')" id="subnav-general">General Feedback</button>
+            </div>
+
+            <div id="sub-lostitems" class="sub-section active">
+                <div class="table-glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Plat Bus</th>
+                                <th>WhatsApp</th>
+                                <th>Pesan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lostitems-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sub-general" class="sub-section">
+                <div class="table-glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Nama</th>
+                                <th>Pesan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedback-table-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -340,6 +363,7 @@
             loadLogs();
             loadGeofenceLogs();
             loadLostItems();
+            loadFeedback();
             loadSystemHealth();
             loadAlertConfig();
         }
@@ -353,7 +377,8 @@
                 'analytics': 'Analytics',
                 'logs': 'Vehicle Logs',
                 'geofence': 'Geofence Events',
-                'lostitems': 'Lost Items',
+                'geofence': 'Geofence Events',
+                'feedback': 'User Feedback',
                 'settings': 'Settings'
             };
             document.getElementById('page-title').innerText = titles[tab];
@@ -645,6 +670,93 @@
             });
         });
         socket.on('update_lost_item', () => loadLostItems());
+        socket.on('new_feedback', (data) => {
+            addFeedbackRow(data, false);
+            Swal.fire({
+                icon: 'info',
+                title: 'Masukan Baru!',
+                text: `${data.name} mengirim masukan`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000
+            });
+        });
+        socket.on('update_feedback', () => loadFeedback());
+
+        function switchSubTab(tab) {
+            document.querySelectorAll('.sub-nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`subnav-${tab}`).classList.add('active');
+            
+            document.querySelectorAll('.sub-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`sub-${tab}`).classList.add('active');
+        }
+
+        async function loadFeedback() {
+            const tbody = document.getElementById('feedback-table-body');
+            tbody.innerHTML = '';
+            try {
+                const res = await fetch('/api/admin/feedback');
+                const data = await res.json();
+                if (data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr class="empty-row">
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-comments"></i>
+                                    <div class="empty-state-text">Belum ada masukan</div>
+                                    <div class="empty-state-sub">Masukan dari pengguna akan muncul di sini</div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                data.forEach(item => addFeedbackRow(item, true));
+            } catch (e) {
+                console.error('Failed to load feedback:', e);
+            }
+        }
+
+        function addFeedbackRow(item, append = true) {
+            const tbody = document.getElementById('feedback-table-body');
+            const tr = document.createElement('tr');
+            tr.id = `feedback-${item.id}`;
+
+            const time = new Date(item.created_at).toLocaleString('id-ID', {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+
+            tr.innerHTML = `
+                <td style="font-size:0.85rem;">${time}</td>
+                <td style="font-weight:700;">${item.name || 'Anonim'}</td>
+                <td>${item.message}</td>
+                <td>
+                    <button class="btn-icon" onclick="deleteFeedback(${item.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+
+            if (append) tbody.appendChild(tr);
+            else tbody.prepend(tr);
+        }
+
+        async function deleteFeedback(id) {
+             Swal.fire({
+                title: 'Hapus Masukan?',
+                text: "Tidak dapat dikembalikan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#111827',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await fetch('/api/admin/feedback/' + id, { method: 'DELETE' });
+                    loadFeedback();
+                    Swal.fire({ icon: 'success', title: 'Terhapus', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                }
+            });
+        }
 
         async function loadLostItems() {
             const tbody = document.getElementById('lostitems-table-body');

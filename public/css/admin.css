@@ -1525,3 +1525,58 @@ tr:hover {
         justify-content: center;
     }
 }
+
+/* Sub Navigation / Tabs */
+.sub-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    width: fit-content;
+}
+
+.sub-nav-item {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sub-nav-item:hover {
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.sub-nav-item.active {
+    background: var(--text-main);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sub-section {
+    display: none;
+    animation: fadeScale 0.3s ease-out;
+}
+
+.sub-section.active {
+    display: block;
+}
+
+@keyframes fadeScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

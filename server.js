@@ -457,10 +457,28 @@ app.post('/api/feedback', rateLimitMiddleware(10), async (req, res) => {
 
         if (error) throw error;
 
+        io.emit('new_feedback', data[0]);
         res.json({ success: true, data: data[0] });
     } catch (err) {
         console.error('Submit feedback error:', err.message);
         res.status(500).json({ error: 'Gagal mengirim masukan' });
+    }
+});
+
+app.delete('/api/admin/feedback/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('feedback')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        io.emit('update_feedback');
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Delete feedback error:', err.message);
+        res.status(500).json({ error: 'Failed to delete feedback' });
     }
 });
 
