@@ -10,4 +10,4 @@ CREATE TABLE admin_users (
 
 -- Default Admin User (Username: admin, Password: admin)
 INSERT INTO admin_users (username, password_hash) 
-VALUES ('admin', '$2b$10$FdZfNeiOGXMIJkpX9vBeBeM3Zgc7VkO5TeqRlXpgvMuA9tOF4euL.');
+VALUES ('admin', '$2b$10$GF9VCWQVGzjebQt0FDUGte/KBWGp26q2eRI2C/p8PpkSIv0M4iP4u');

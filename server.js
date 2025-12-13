@@ -220,11 +220,13 @@ app.post('/auth/login', rateLimitMiddleware(LOGIN_RATE_LIMIT_MAX), async (req, r
             .single();
 
         if (error || !data) {
+            console.warn(`[Login] Gagal: User '${username}' tidak ditemukan.`);
             return res.status(401).json({ success: false, message: 'User not found' });
         }
 
-        const match = await bcrypt.compare(password, data.password_hash);
+        const match = await bcrypt.compare(password.trim(), data.password_hash);
         if (!match) {
+            console.warn(`[Login] Gagal: Password salah untuk user '${username}'.`);
             return res.status(401).json({ success: false, message: 'Password salah' });
         }
 
