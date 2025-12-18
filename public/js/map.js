@@ -38,6 +38,16 @@ export function initMap() {
         const initialZoom = map.getZoom();
         map.setMinZoom(initialZoom);
     });
+
+    map.on('styleimagemissing', (e) => {
+        const id = e.id;
+        if (!map.hasImage(id)) {
+            const pixel = new Uint8Array(4);
+            pixel[0] = 0; pixel[1] = 0; pixel[2] = 0; pixel[3] = 0;
+            map.addImage(id, { width: 1, height: 1, data: pixel });
+        }
+    });
+
     return map;
 }
 export function addRoutes() {
