@@ -1,9 +1,20 @@
-# BIPOL Tracker 🚌💨
-**Real-Time Bus Tracking & Fleet Management System**
+<div align="center">
+  <img src="public/images/favicon.png" alt="BIPOL Tracker Logo" width="120">
+  <h1>BIPOL Tracker</h1>
+  <p><strong>Real-Time Bus Tracking & Fleet Management System</strong></p>
 
-![Project Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![License](https://img.shields.io/badge/License-ISC-blue)
-![Tech](https://img.shields.io/badge/Stack-Node.js%20%7C%20Supabase%20%7C%20IoT-orange)
+  <p>
+    <a href="https://www.bipoltracker.cloud/"><strong>🔴 Live Demo</strong></a>
+    &nbsp;|&nbsp;
+    <a href="#-mobile-application-android">Mobile App</a>
+    &nbsp;|&nbsp;
+    <a href="#-getting-started">Getting Started</a>
+  </p>
+
+  ![Project Status](https://img.shields.io/badge/Status-Active-brightgreen)
+  ![License](https://img.shields.io/badge/License-ISC-blue)
+  ![Tech](https://img.shields.io/badge/Stack-Node.js%20%7C%20Supabase%20%7C%20IoT-orange)
+</div>
 
 ## 📖 Overview
 
