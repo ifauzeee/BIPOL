@@ -1,6 +1,6 @@
-const CACHE_NAME = 'bipol-tracker-v2';
-const STATIC_CACHE = 'bipol-static-v2';
-const DYNAMIC_CACHE = 'bipol-dynamic-v2';
+const CACHE_NAME = 'bipol-tracker-v5';
+const STATIC_CACHE = 'bipol-static-v5';
+const DYNAMIC_CACHE = 'bipol-dynamic-v5';
 
 const STATIC_ASSETS = [
   '/',
@@ -129,7 +129,7 @@ self.addEventListener('push', event => {
 
   const options = {
     body: data.body || 'Ada update baru dari Bipol Tracker',
-    icon: '/images/pwa-icon.png',
+    icon: '/images/pwa-icon-192.png',
     badge: '/images/favicon.png',
     vibrate: [100, 50, 100],
     data: { url: data.url || '/' },

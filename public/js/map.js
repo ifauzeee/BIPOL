@@ -23,7 +23,7 @@ export function closeAllPopups() {
     });
 }
 export function initMap() {
-    const styleUrl = 'https://tiles.openfreemap.org/styles/bright';
+    const styleUrl = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
     map = new maplibregl.Map({
         container: 'map',
         style: styleUrl,
@@ -34,6 +34,7 @@ export function initMap() {
         bearing: 0,
         antialias: true
     });
+
     map.on('load', () => {
         const initialZoom = map.getZoom();
         map.setMinZoom(initialZoom);
@@ -46,6 +47,14 @@ export function initMap() {
             pixel[0] = 0; pixel[1] = 0; pixel[2] = 0; pixel[3] = 0;
             map.addImage(id, { width: 1, height: 1, data: pixel });
         }
+    });
+
+    map.on('error', (e) => {
+        if (e.error && e.error.message &&
+            e.error.message.includes('Expected value to be of type number, but found null')) {
+            return;
+        }
+        console.warn('Map error:', e.error);
     });
 
     return map;
@@ -130,13 +139,26 @@ export function add3DBuildings() {
             'id': 'add-3d-buildings',
             'source': vectorSource,
             'source-layer': 'building',
-            'filter': ['==', 'extrude', 'true'],
+            'filter': ['all',
+                ['has', 'extrude'],
+                ['==', ['get', 'extrude'], 'true']
+            ],
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
                 'fill-extrusion-color': '#aaa',
-                'fill-extrusion-height': ['coalesce', ['get', 'height'], 0],
-                'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                'fill-extrusion-height': [
+                    'case',
+                    ['has', 'render_height'], ['to-number', ['get', 'render_height'], 0],
+                    ['has', 'height'], ['to-number', ['get', 'height'], 0],
+                    0
+                ],
+                'fill-extrusion-base': [
+                    'case',
+                    ['has', 'render_min_height'], ['to-number', ['get', 'render_min_height'], 0],
+                    ['has', 'min_height'], ['to-number', ['get', 'min_height'], 0],
+                    0
+                ],
                 'fill-extrusion-opacity': 0.6
             }
         });

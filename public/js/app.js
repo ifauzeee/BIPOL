@@ -13,6 +13,13 @@ map.on('load', () => {
     try { add3DBuildings(); } catch (e) { }
     addStops();
 
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+        }
+    }, 300);
+
     document.getElementById('skeleton-loader').classList.remove('hidden');
     document.getElementById('empty-state').style.display = 'none';
 

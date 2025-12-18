@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/images/pwa-icon.png">
+    <link rel="apple-touch-icon" href="/images/pwa-icon-192.png">
     <link rel="manifest" href="/manifest.json">
     <title>Bipol Tracker</title>
     <link rel="icon" href="/images/favicon.png" type="image/png">
@@ -21,6 +21,17 @@
 </head>
 
 <body>
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img src="/images/favicon.png" alt="Bipol" class="loading-logo">
+            <h2 class="loading-title">Bipol Tracker</h2>
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-text">Memuat peta...</p>
+        </div>
+    </div>
+
     <a href="#bus-list" class="skip-link">Skip to content</a>
 
     <div class="offline-indicator" id="offline-indicator">
