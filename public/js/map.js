@@ -16,6 +16,12 @@ export function setFollowBusId(id) {
 export function getFollowBusId() {
     return followBusId;
 }
+export function closeAllPopups() {
+    Object.values(busMarkers).forEach(obj => {
+        const popup = obj.marker.getPopup();
+        if (popup) popup.remove();
+    });
+}
 export function initMap() {
     const styleUrl = 'https://tiles.openfreemap.org/styles/bright';
     map = new maplibregl.Map({

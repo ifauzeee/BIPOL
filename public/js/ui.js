@@ -1,5 +1,5 @@
 import { stops, bounds } from './data.js';
-import { getMap, setFollowBusId, getFollowBusId, toggleRoute } from './map.js';
+import { getMap, setFollowBusId, getFollowBusId, toggleRoute, closeAllPopups } from './map.js';
 import * as turf from 'https://cdn.jsdelivr.net/npm/@turf/turf@7/+esm';
 
 let lastAlert = 0;
@@ -166,6 +166,7 @@ export function switchTab(tab) {
             setFollowBusId(null);
             document.querySelectorAll('.bus-item').forEach(i => i.classList.remove('active-focus'));
         }
+        closeAllPopups();
 
         getMap().easeTo({
             center: bounds.getCenter(),
