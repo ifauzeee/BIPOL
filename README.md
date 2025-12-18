@@ -1,22 +1,8 @@
 <div align="center">
-  <img src="public/images/favicon.png" alt="BIPOL Tracker Logo" width="100%">
+  <img src="public/images/favicon.png" alt="BIPOL Tracker Logo" width="120%">
   <h1>BIPOL Tracker</h1>
   <p><strong>Real-Time Bus Tracking & Fleet Management System</strong></p>
 
-  <p>
-    <a href="https://www.bipoltracker.cloud/"><strong>🔴 Live Demo</strong></a>
-    &nbsp;|&nbsp;
-    <a href="#-mobile-application-android">Mobile App</a>
-    &nbsp;|&nbsp;
-    <a href="#-getting-started">Getting Started</a>
-  </p>
-  <p>
-    <a href="https://www.bipoltracker.cloud/"><strong>🔴 Live Demo</strong></a>
-    &nbsp;|&nbsp;
-    <a href="#-mobile-application-android">Mobile App</a>
-    &nbsp;|&nbsp;
-    <a href="#-getting-started">Getting Started</a>
-  </p>
   <p>
     <a href="https://www.bipoltracker.cloud/"><strong>🔴 Live Demo</strong></a>
     &nbsp;|&nbsp;
