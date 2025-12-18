@@ -53,3 +53,6 @@ build
 # Context Tool artifacts
 code_context.txt
 cat.py
+
+# Mobile App (separate repository)
+mobile/
