@@ -11,8 +11,16 @@
     <a href="#-getting-started">Getting Started</a>
   </p>
 
+  <p>
+    <a href="https://www.bipoltracker.cloud/"><strong>🔴 Live Demo</strong></a>
+    &nbsp;|&nbsp;
+    <a href="#-mobile-application-android">Mobile App</a>
+    &nbsp;|&nbsp;
+    <a href="#-getting-started">Getting Started</a>
+  </p>
+
   ![Project Status](https://img.shields.io/badge/Status-Active-brightgreen)
-  ![License](https://img.shields.io/badge/License-ISC-blue)
+  [![License](https://img.shields.io/badge/License-ISC-blue)](./LICENSE)
   ![Tech](https://img.shields.io/badge/Stack-Node.js%20%7C%20Supabase%20%7C%20IoT-orange)
 </div>
 
@@ -143,6 +151,10 @@ BIPOL/
 
 *   **Backend & Web Architecture**: [Ifauzeee](https://github.com/Ifauzeee)
 *   **Android Application**: [garnhoesssss](https://github.com/garnhoesssss)
+
+## 📄 License
+
+This project is licensed under the **ISC License** - see the [LICENSE](./LICENSE) file for details.
 
 ---
 
