@@ -169,11 +169,11 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://www.google-analytics.com"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
-            connectSrc: ["'self'", "wss:", "ws:", "https://lmkbbfknaflfcwanoonf.supabase.co"],
+            connectSrc: ["'self'", "wss:", "ws:", "https://lmkbbfknaflfcwanoonf.supabase.co", "https://tiles.openfreemap.org", "https://www.google-analytics.com"],
             workerSrc: ["'self'", "blob:"],
             frameSrc: ["'none'"],
             objectSrc: ["'none'"],
@@ -665,8 +665,7 @@ app.post('/api/track', async (req, res) => {
         setToCache(`bus_${bus_id}`, data[0]);
         checkGeofence(bus_id, latitude, longitude);
 
-        const occupancy = ['Sepi', 'Sedang', 'Penuh'][Math.floor(Math.random() * 3)];
-        io.emit("update_bus", { ...data[0], occupancy });
+        io.emit("update_bus", data[0]);
 
         res.status(200).send("OK");
     } catch (err) {
@@ -814,9 +813,12 @@ udpServer.on('message', async (msg, rinfo) => {
 
         console.log(`📡 [UDP] ${bus_id} | 📍 ${latitude.toFixed(6)},${longitude.toFixed(6)} | 🚀 ${speed} | ⛽ ${gas_level}`);
 
+        let cleanSpeed = validate.speed(speed) ? speed : 0;
+        if (cleanSpeed < 3.0) cleanSpeed = 0;
+
         const insertData = {
             bus_id, latitude, longitude,
-            speed: validate.speed(speed) ? speed : 0,
+            speed: cleanSpeed,
             gas_level: validate.gasLevel(gas_level) ? gas_level : 0,
             created_at: new Date().toISOString()
         };
@@ -828,8 +830,6 @@ udpServer.on('message', async (msg, rinfo) => {
         checkGeofence(bus_id, latitude, longitude);
 
         insertData.id = Date.now();
-
-        insertData.occupancy = ['Sepi', 'Sedang', 'Penuh'][Math.floor(Math.random() * 3)];
 
         io.emit("update_bus", insertData);
     } catch (err) {

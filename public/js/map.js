@@ -131,7 +131,7 @@ export function updateMarker(bus) {
     const gasClass = bus.gas_level > 600 ? 'popup-danger' : '';
     const statusText = bus.speed < 1 ? 'Berhenti' : 'Berjalan';
     const statusClass = bus.speed < 1 ? 'status-stopped' : 'status-moving';
-    const crowd = getCrowdConfig(bus.occupancy);
+
     let etaHtml = '';
     let sortStops = stops.map(stop => {
         return {
@@ -161,9 +161,6 @@ export function updateMarker(bus) {
                     <h3>${bus.bus_id}</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <span class="popup-status ${statusClass}" style="font-size:0.7rem; padding:2px 6px;">${statusText}</span>
-                        <span style="background:${crowd.color}15; color:${crowd.color}; border:1px solid ${crowd.color}30; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; display:inline-flex; align-items:center; gap:3px;">
-                            <i class="fa-solid fa-users" style="font-size:0.6rem;"></i> ${crowd.text}
-                        </span>
                     </div>
                 </div>
             </div>

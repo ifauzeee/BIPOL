@@ -85,8 +85,16 @@ map.on('load', () => {
         document.getElementById('empty-state').style.display = 'none';
     });
 
-    map.on('dragstart', () => { setFollowBusId(null); });
-    map.on('touchmove', () => { setFollowBusId(null); });
+    map.on('dragstart', () => {
+        setFollowBusId(null);
+        const popup = document.querySelector('.maplibregl-popup');
+        if (popup) popup.remove();
+    });
+    map.on('touchmove', () => {
+        setFollowBusId(null);
+        const popup = document.querySelector('.maplibregl-popup');
+        if (popup) popup.remove();
+    });
 });
 setupControls();
 
