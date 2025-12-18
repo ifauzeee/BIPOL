@@ -1,5 +1,6 @@
 import { stops, rutePagi, ruteSore, bounds } from './data.js';
 import { calculateDistance, estimateArrival, formatTime, getCrowdConfig } from './utils.js';
+import { getBusStatus, GAS_ALERT_THRESHOLD } from './status.js';
 let map;
 let busMarkers = {};
 let stopMarkers = [];
@@ -166,9 +167,14 @@ export function add3DBuildings() {
 }
 export function updateMarker(bus) {
     const targetPos = [bus.longitude, bus.latitude];
-    const gasClass = bus.gas_level > 600 ? 'popup-danger' : '';
-    const statusText = bus.speed < 1 ? 'Berhenti' : 'Berjalan';
-    const statusClass = bus.speed < 1 ? 'status-stopped' : 'status-moving';
+    const gasClass = bus.gas_level > GAS_ALERT_THRESHOLD ? 'popup-danger' : '';
+
+    const busStatus = getBusStatus(bus);
+    const statusText = busStatus.status;
+
+    let statusClass = 'status-stopped';
+    if (statusText === 'Berjalan') statusClass = 'status-moving';
+    else if (statusText === 'Berhenti') statusClass = 'status-paused';
 
     let etaHtml = '';
     let sortStops = stops.map(stop => {

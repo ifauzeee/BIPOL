@@ -1,41 +1,16 @@
 import { stops, bounds } from './data.js';
 import { getMap, setFollowBusId, getFollowBusId, toggleRoute, closeAllPopups } from './map.js';
+import { getBusStatus, updateStatusConfig, GAS_ALERT_THRESHOLD } from './status.js';
 import * as turf from 'https://cdn.jsdelivr.net/npm/@turf/turf@7/+esm';
 
 let lastAlert = 0;
-let GAS_ALERT_THRESHOLD = 600;
-let BUS_STOP_TIMEOUT_MINUTES = 5;
-const busLastMovedTime = {};
 
 fetch('/api/config')
     .then(r => r.json())
     .then(config => {
-        GAS_ALERT_THRESHOLD = config.gasAlertThreshold || 600;
-        BUS_STOP_TIMEOUT_MINUTES = config.busStopTimeoutMinutes || 5;
+        updateStatusConfig(config);
     })
     .catch(() => { });
-
-export function getBusStatus(bus) {
-    const now = Date.now();
-
-    if (bus.speed > 0) {
-        busLastMovedTime[bus.bus_id] = now;
-        return { status: 'Berjalan', class: 'dot-green', icon: 'fa-bus' };
-    }
-
-    if (!busLastMovedTime[bus.bus_id]) {
-        return { status: 'Parkir', class: 'dot-gray', icon: 'fa-square-parking' };
-    }
-
-    const lastMoved = busLastMovedTime[bus.bus_id];
-    const stoppedMinutes = (now - lastMoved) / 1000 / 60;
-
-    if (stoppedMinutes >= BUS_STOP_TIMEOUT_MINUTES) {
-        return { status: 'Parkir', class: 'dot-gray', icon: 'fa-square-parking' };
-    } else {
-        return { status: 'Berhenti', class: 'dot-yellow', icon: 'fa-circle-pause' };
-    }
-}
 
 export function setupControls() {
     document.getElementById('recenterBtn').onclick = () => {

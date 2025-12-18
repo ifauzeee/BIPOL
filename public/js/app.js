@@ -1,10 +1,10 @@
 import { initMap, addRoutes, addStops, add3DBuildings, updateMarker, removeInactiveMarkers, getMap, setFollowBusId, getFollowBusId } from './map.js';
-import { setupControls, updateSidebar, calculateETA, checkAlerts, switchTab, closeImage, getBusStatus } from './ui.js';
+import { setupControls, updateSidebar, calculateETA, checkAlerts, switchTab, closeImage } from './ui.js';
+import { updateStatusConfig, GAS_ALERT_THRESHOLD, getBusStatus } from './status.js';
 
-let GAS_ALERT_THRESHOLD = 600;
 fetch('/api/config')
     .then(r => r.json())
-    .then(config => { GAS_ALERT_THRESHOLD = config.gasAlertThreshold || 600; })
+    .then(config => { updateStatusConfig(config); })
     .catch(() => { });
 
 const map = initMap();
@@ -13,17 +13,20 @@ map.on('load', () => {
     try { add3DBuildings(); } catch (e) { }
     addStops();
 
-    setTimeout(() => {
+    const removeLoading = () => {
         const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
+        if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
             loadingScreen.classList.add('hidden');
         }
-    }, 300);
+    };
+
+    setTimeout(removeLoading, 300);
+
+    setTimeout(removeLoading, 3000);
 
     document.getElementById('skeleton-loader').classList.remove('hidden');
     document.getElementById('empty-state').style.display = 'none';
 
-    fetchData();
 
     const socket = io();
 

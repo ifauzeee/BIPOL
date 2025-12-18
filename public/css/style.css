@@ -48,9 +48,12 @@
 }
 
 @keyframes pulse-logo {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }
@@ -709,6 +712,11 @@ html {
     color: #6b7280;
 }
 
+.popup-status.status-paused {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+}
+
 .popup-stats {
     display: flex;
     gap: 16px;
@@ -862,7 +870,7 @@ html {
 }
 
 .bottom-sheet {
-    bottom: 95px !important;
+    bottom: 86px !important;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
