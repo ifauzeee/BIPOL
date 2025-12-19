@@ -12,11 +12,13 @@ fetch('/api/config')
     })
     .catch(() => { });
 
+
+
 export function setupControls() {
     document.getElementById('recenterBtn').onclick = () => {
         setFollowBusId(null);
         getMap().fitBounds(bounds, {
-            padding: { top: 40, bottom: 250, left: 20, right: 20 },
+            padding: { top: 40, bottom: (window.innerWidth < 768) ? 230 : 150, left: 20, right: 20 },
             pitch: 0,
             bearing: 0,
             speed: 1.2,
@@ -152,7 +154,7 @@ export function switchTab(tab) {
 
         if (getMap()) {
             getMap().fitBounds(bounds, {
-                padding: { top: 40, bottom: 250, left: 20, right: 20 },
+                padding: { top: 40, bottom: (window.innerWidth < 768) ? 230 : 150, left: 20, right: 20 },
                 speed: 1.2,
                 curve: 1.42,
                 essential: true
@@ -167,7 +169,7 @@ export function switchTab(tab) {
 
         getMap().resize();
         getMap().fitBounds(bounds, {
-            padding: { top: 50, bottom: 250, left: 20, right: 20 },
+            padding: { top: 50, bottom: (window.innerWidth < 768) ? 230 : 150, left: 20, right: 20 },
             speed: 0.8,
             curve: 1.2
         });

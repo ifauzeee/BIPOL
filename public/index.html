@@ -356,7 +356,16 @@
             <i class="fa-solid fa-circle-question" aria-hidden="true"></i><span>FAQ</span>
         </div>
     </nav>
-    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                reg.update();
+            });
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+        }
+    </script>
     <script>
         const RATE_LIMIT_KEY = 'lastLostItemSubmit';
         const RATE_LIMIT_MINUTES = 5;

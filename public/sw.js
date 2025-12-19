@@ -1,6 +1,6 @@
-const CACHE_NAME = 'bipol-tracker-v6';
-const STATIC_CACHE = 'bipol-static-v6';
-const DYNAMIC_CACHE = 'bipol-dynamic-v6';
+const CACHE_NAME = 'bipol-tracker-v7';
+const STATIC_CACHE = 'bipol-static-v7';
+const DYNAMIC_CACHE = 'bipol-dynamic-v7';
 
 const STATIC_ASSETS = [
   '/',
@@ -53,9 +53,18 @@ self.addEventListener('fetch', event => {
 
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
     event.respondWith(networkFirst(event.request));
-  } else if (url.pathname.startsWith('/socket.io/')) {
+  }
+  else if (url.pathname.startsWith('/socket.io/')) {
     return;
-  } else {
+  }
+  else if (
+    event.request.mode === 'navigate' ||
+    url.pathname.endsWith('.html') ||
+    (url.origin === self.location.origin && (url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/')))
+  ) {
+    event.respondWith(networkFirst(event.request));
+  }
+  else {
     event.respondWith(cacheFirst(event.request));
   }
 });

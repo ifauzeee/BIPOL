@@ -52,7 +52,11 @@ export function initMap() {
             ]
         },
         bounds: bounds,
-        fitBoundsOptions: { padding: { top: 40, bottom: 250, left: 20, right: 20 } },
+        maxBounds: [
+            [bounds.getSouthWest().lng - 0.05, bounds.getSouthWest().lat - 0.05],
+            [bounds.getNorthEast().lng + 0.05, bounds.getNorthEast().lat + 0.05]
+        ],
+        fitBoundsOptions: { padding: { top: 40, bottom: (window.innerWidth < 768) ? 230 : 150, left: 20, right: 20 } },
         pitch: 0,
         bearing: 0,
         antialias: true
