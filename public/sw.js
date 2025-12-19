@@ -49,6 +49,8 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
+  if (!url.protocol.startsWith('http')) return;
+
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
     event.respondWith(networkFirst(event.request));
   } else if (url.pathname.startsWith('/socket.io/')) {
@@ -64,7 +66,8 @@ async function cacheFirst(request) {
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    const url = new URL(request.url);
+    if (response.ok && url.protocol.startsWith('http')) {
       const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, response.clone());
     }
@@ -80,7 +83,8 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    const url = new URL(request.url);
+    if (response.ok && url.protocol.startsWith('http')) {
       const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, response.clone());
     }

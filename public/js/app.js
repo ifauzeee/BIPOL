@@ -24,8 +24,10 @@ map.on('load', () => {
 
     setTimeout(removeLoading, 3000);
 
-    document.getElementById('skeleton-loader').classList.remove('hidden');
-    document.getElementById('empty-state').style.display = 'none';
+    const skeletonLoader = document.getElementById('skeleton-loader');
+    const emptyState = document.getElementById('empty-state');
+    if (skeletonLoader) skeletonLoader.classList.remove('hidden');
+    if (emptyState) emptyState.style.display = 'none';
 
 
     const socket = io();
