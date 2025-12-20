@@ -1,5 +1,3 @@
-const xss = require('xss');
-
 const validate = {
     busPlate: (value) => {
         if (!value || typeof value !== 'string') return false;

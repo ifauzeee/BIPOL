@@ -17,8 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script type="module" crossorigin src="/assets/main-CWjpWTfP.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-CXW50JFB.css">
+  <script type="module" crossorigin src="/assets/main-B8igSRlD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-BhgfRgdX.css">
 </head>
 
 <body>
@@ -32,6 +32,8 @@
             <p class="loading-text">Memuat peta...</p>
         </div>
     </div>
+
+    <div id="arrival-notification-container" class="arrival-notification-container"></div>
 
     <a href="#bus-list" class="skip-link">Skip to content</a>
 
@@ -55,9 +57,8 @@
         <div class="sheet-header">
             <div class="header-text" style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="flex:1;">
-                    <h1 style="display:flex; align-items:center; gap:8px;">Bipol Tracker<span
-                            class="live-badge">LIVE</span></h1>
-                    <div class="dashboard-routes" style="display:flex; gap:8px; margin-top:2px;">
+                    <h1 style="display:flex; align-items:center; gap:8px;">Bipol Tracker</h1>
+                    <div class="dashboard-routes" style="display:flex; gap:8px; margin-top:8px; margin-bottom:8px;">
                         <button class="chip-dashboard pagi active-route" onclick="toggleRoute('rutePagi', this)">
                             <i class="fa-solid fa-sun"></i> Pagi
                         </button>

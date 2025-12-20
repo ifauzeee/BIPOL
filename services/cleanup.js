@@ -1,7 +1,4 @@
 const supabase = require('../config/supabase');
-const { memoryCache } = require('../utils/cache');
-
-const RATE_LIMIT_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000;
 
 function getLogTime() {
     return new Date().toLocaleString('id-ID', {

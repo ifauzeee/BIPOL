@@ -505,28 +505,23 @@ export function updateMarker(bus) {
     }
 }
 
-const notifiedState = new Map(); // Key: busId-stopName, Value: timestamp
+const notifiedState = new Map();
 
 function checkAndShowArrivalNotification(bus, stop) {
-    // Threshold: 250 meter
     if (stop.dist > 0.25) return;
 
     const key = `${bus.bus_id}-${stop.title}`;
     const now = Date.now();
-    const cooldown = 5 * 60 * 1000; // 5 menit cooldown per halte
+    const cooldown = 5 * 60 * 1000;
 
-    // Jika sudah diberi notif dalam 5 menit terakhir, abaikan
     if (notifiedState.has(key) && (now - notifiedState.get(key) < cooldown)) {
         return;
     }
 
-    // Tampilkan notifikasi
     showArrivalNotification(bus, stop);
 
-    // Simpan state
     notifiedState.set(key, now);
 
-    // Bersihkan state lama (garbage collection sederhana)
     if (notifiedState.size > 50) {
         for (const [k, t] of notifiedState) {
             if (now - t > cooldown) notifiedState.delete(k);
@@ -558,7 +553,6 @@ function showArrivalNotification(bus, stop) {
 
     container.appendChild(el);
 
-    // Hapus notif otomatis setelah 6 detik
     setTimeout(() => {
         el.classList.add('leaving');
         el.addEventListener('animationend', () => {
