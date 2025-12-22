@@ -1,6 +1,6 @@
 {
   "name": "bipol-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "BIPOL Tracker - Sistem pelacakan armada bus kampus Politeknik Negeri Jakarta secara real-time menggunakan GPS, WebSocket, dan peta interaktif",
   "main": "server.js",
   "scripts": {
