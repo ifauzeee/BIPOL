@@ -74,7 +74,7 @@ export function initMap() {
             [bounds.getSouthWest().lng - 0.05, bounds.getSouthWest().lat - 0.05],
             [bounds.getNorthEast().lng + 0.05, bounds.getNorthEast().lat + 0.05]
         ],
-        fitBoundsOptions: { padding: { top: 40, bottom: 40, left: 20, right: 20 } },
+        fitBoundsOptions: { padding: getMapPadding() },
         padding: getMapPadding(),
         pitch: 0,
         bearing: 0,
@@ -540,7 +540,7 @@ function showArrivalNotification(bus, stop) {
 
     el.innerHTML = `
         <div class="arrival-icon">
-            <i class="fa-solid fa-bus"></i>
+            <img src="/images/bipol.png" style="width:100%; height:100%; object-fit:contain;">
         </div>
         <div class="arrival-content">
             <h4>${bus.bus_id} Mendekat!</h4>

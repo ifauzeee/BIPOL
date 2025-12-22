@@ -590,7 +590,7 @@ npm run build
 
 1. Buka aplikasi di browser
 2. Buka halaman admin `/admin`
-3. Simulasi data GPS menggunakan dummy buses (otomatis berjalan)
+3. Kirim data GPS test secara manual (lihat langkah UDP Test di bawah)
 
 ### UDP Test
 

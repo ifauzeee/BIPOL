@@ -68,9 +68,7 @@ CREATE TABLE "feedback" (
     "status" VARCHAR(20) DEFAULT 'pending',
     "created_at" TIMESTAMPTZ DEFAULT NOW()
 );
--- Default admin: username=admin, password=admin123 (GANTI SEGERA setelah deploy!)
-INSERT INTO "admin_users" ("username", "password_hash")
-VALUES ('admin', '$2b$12$Myv.qmlJ6oxhaqRiTYTCYOKScrBTvqdpYMWtviUad3jSS2/uAWnzW'); 
+ 
 ALTER TABLE "bipol_tracker" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read access" ON "bipol_tracker" FOR SELECT USING (true);
 CREATE POLICY "Public insert access" ON "bipol_tracker" FOR INSERT WITH CHECK (true);
