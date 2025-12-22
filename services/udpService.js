@@ -52,6 +52,28 @@ function startUdpServer(io) {
             if (io) {
                 io.emit("update_bus", insertData);
             }
+
+            const LEGACY_ID_MAP = {
+                'B 2013 EPA': 'BT-240601',
+                'B 2027 EPA': 'BT-240602',
+                'BPL-BIPOL': 'BT-240603'
+            };
+
+            const LEGACY_HOST = process.env.LEGACY_SERVER_HOST;
+            const LEGACY_PORT = process.env.LEGACY_SERVER_PORT || 5005;
+
+            if (LEGACY_HOST && LEGACY_ID_MAP[bus_id]) {
+                const legacyBusId = LEGACY_ID_MAP[bus_id];
+                const legacyPayload = `${legacyBusId},${latitude},${longitude}`;
+                const message = Buffer.from(legacyPayload);
+
+                udpServer.send(message, LEGACY_PORT, LEGACY_HOST, (err) => {
+                    if (err) {
+                        console.error(`❌ Forward Error: ${err.message}`);
+                    }
+                });
+            }
+
         } catch (err) {
             console.error('UDP message error:', err.message);
         }

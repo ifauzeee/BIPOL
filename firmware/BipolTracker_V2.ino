@@ -6,12 +6,17 @@
 #include <LiquidCrystal_I2C.h>
 #include "arduino_secrets.h"
 
+// ==========================================
+// KONFIGURASI ALAT BARU (PROJECT BIPOL)
+// ==========================================
+#define DEVICE_ID    "BUS-01"   // ID untuk Alat Baru
+#define MODEM_RX_PIN 26         // Pin RX Baru
+#define MODEM_TX_PIN 27         // Pin TX Baru
+#define MQ2_PIN      34         // Sensor Gas
+// ==========================================
+
 const char server[]   = SECRET_SERVER_IP;
 const int  udp_port   = SECRET_UDP_PORT;
-
-#define MODEM_RX_PIN 26
-#define MODEM_TX_PIN 27
-#define MQ2_PIN      34
 
 const char apn[]  = SECRET_APN;
 const char user[] = SECRET_GPRS_USER;
@@ -41,8 +46,9 @@ void setup() {
   Wire.begin(21, 22);
   lcd.init();
   lcd.backlight();
-  lcd.print("UDP System Boot..");
+  lcd.print("BIPOL NEW SYSTEM");
 
+  // Inisialisasi Serial Modem
   SerialAT.begin(9600, SERIAL_8N1, MODEM_RX_PIN, MODEM_TX_PIN);
   delay(1000);
   SerialMon.println("Setting Modem Baudrate to 115200...");
@@ -68,7 +74,7 @@ void setup() {
   modem.enableGPS();
 
   lcd.clear();
-  lcd.print("Ready UPD Track");
+  lcd.print("Ready " + String(DEVICE_ID));
 }
 
 void connectUDP() {
@@ -153,35 +159,59 @@ void loop() {
     return;
   }
 
-  modem.getGPS(&lat, &lon, &speed, &alt, &vsat, &usat);
+  // Ambil Data GPS & Waktu
+  int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
+  float accuracy = 0;
+  modem.getGPS(&lat, &lon, &speed, &alt, &vsat, &usat, &accuracy, &year, &month, &day, &hour, &minute, &second);
+
   if (speed < 1.0) speed = 0;
 
   mq2Value = analogRead(MQ2_PIN);
 
-  if (millis() - lastLcdTime > 1000) {
+  // Cycling Display Logic (Ganti tampilan setiap 2 detik)
+  if (millis() - lastLcdTime > 2000) {
     lastLcdTime = millis();
+    static bool showPage = false;
+    showPage = !showPage;
 
+    // === BARIS 1: SELALU TAMPIL (ID & SPEED) ===
     lcd.setCursor(0,0);
-    if(speed < 10) lcd.print("00");
-    else if(speed < 100) lcd.print("0");
+    lcd.print(DEVICE_ID);
+    
+    // Rata Kanan untuk Speed
+    lcd.setCursor(10,0);
+    if(speed < 10) lcd.print(" ");
     lcd.print((int)speed);
-    lcd.print("km/h Sat:");
-    if(vsat < 10) lcd.print("0");
-    lcd.print(vsat);
+    lcd.print("KM/H");
 
+    // === BARIS 2: BERGANTIAN ===
     lcd.setCursor(0,1);
-    lcd.print("Gas:");
-    lcd.print(mq2Value);
-    lcd.print(" ");
-
-    if(modem.isGprsConnected()) lcd.print("UP:OK");
-    else lcd.print("NO-IP");
+    if (showPage) {
+        // TAMPILAN A: SINYAL & JAM
+        if(modem.isGprsConnected()) lcd.print("[ON] 4G   ");
+        else                        lcd.print("[!] LOST  ");
+        
+        int jamWIB = (hour + 7) % 24;
+        if (minute < 10) lcd.print(" " + String(jamWIB) + ":0" + String(minute));
+        else             lcd.print(" " + String(jamWIB) + ":" + String(minute));
+    } else {
+        // TAMPILAN B: SENSOR GAS / STATUS
+        if (mq2Value > 500) {
+             lcd.print("WARNING: GAS!");
+        } else if (speed > 5) {
+             lcd.print(">> MOVING <<    ");
+        } else {
+             lcd.print("GAS LEVEL: ");
+             lcd.print(mq2Value);
+             lcd.print("   ");
+        }
+    }
   }
 
   if (millis() - lastSendTime > sendInterval) {
     lastSendTime = millis();
 
-    String csv = "BUS-01," + String(lat, 6) + "," + String(lon, 6) + "," + String(speed, 1) + "," + String(mq2Value);
+    String csv = String(DEVICE_ID) + "," + String(lat, 6) + "," + String(lon, 6) + "," + String(speed, 1) + "," + String(mq2Value);
 
     sendDataUDP(csv);
   }
