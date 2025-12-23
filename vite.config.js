@@ -14,7 +14,8 @@ export default defineConfig({
                 main: path.resolve(__dirname, 'frontend/index.html'),
                 login: path.resolve(__dirname, 'frontend/login.html'),
                 admin: path.resolve(__dirname, 'frontend/admin.html'),
-                driver: path.resolve(__dirname, 'frontend/driver.html')
+                driver: path.resolve(__dirname, 'frontend/driver.html'),
+                team: path.resolve(__dirname, 'frontend/team.html')
             }
         }
     },

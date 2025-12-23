@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const dns = require('node:dns');
 const http = require('http');
-const { Server } = require("socket.io");
+const { Server } = require('socket.io');
 const helmet = require('helmet');
 const hpp = require('hpp');
 
@@ -30,7 +30,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-        methods: ["GET", "POST"],
+        methods: ['GET', 'POST'],
         credentials: true
     },
     pingTimeout: 60000,
@@ -53,7 +53,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://www.google-analytics.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://www.google-analytics.com", "https://cdnjs.cloudflare.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "wss:", "ws:", "https:", "http:"],
@@ -64,7 +64,7 @@ app.use(helmet({
         }
     },
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 app.use(hpp());
@@ -161,6 +161,10 @@ app.get('/driver/dashboard', (req, res) => {
         return res.redirect('/login');
     }
     res.sendFile(path.join(__dirname, 'public', 'driver.html'));
+});
+
+app.get('/team', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'team.html'));
 });
 
 app.use((err, req, res, next) => {
