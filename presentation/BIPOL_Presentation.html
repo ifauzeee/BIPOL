@@ -1,0 +1,3708 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIPOL Tracker - Analisis Proyek (Single File)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #BF1E2E;
+            --secondary: #f59e0b;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --transition: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .cursor {
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.1s;
+        }
+
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            appearance: none;
+            z-index: 1000;
+        }
+
+        #progress-bar::-webkit-progress-bar {
+            background: transparent;
+        }
+
+        #progress-bar::-webkit-progress-value {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        #presentation-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+            will-change: scroll-position;
+
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #presentation-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            flex: 0 0 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            scroll-snap-align: start;
+            padding: 0 10%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .background-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0;
+            display: none;
+        }
+
+        .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -100px;
+            left: -100px;
+        }
+
+        .circle-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            bottom: -50px;
+            right: -50px;
+        }
+
+        .ui-mockup-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .ui-mockup-img {
+            max-width: 90%;
+            height: auto;
+            max-height: 70vh;
+            border: none;
+            box-shadow: none;
+        }
+
+        .welcome-logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 30px rgba(191, 30, 46, 0.6));
+            animation: floatLogo 6s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .tagline {
+            font-size: 1rem;
+            letter-spacing: 5px;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .main-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .main-title span {
+            color: var(--secondary);
+        }
+
+        .pulse-text {
+            animation: pulseText 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulseText {
+            0% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                filter: brightness(1.3);
+                text-shadow: 0 0 15px currentColor;
+            }
+
+            100% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .divider {
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .author {
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.6;
+        }
+
+        .scroll-indicator i {
+            animation: bounceHorizontal 2s infinite;
+        }
+
+        @keyframes bounceHorizontal {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateX(0);
+            }
+
+            40% {
+                transform: translateX(10px);
+            }
+
+            60% {
+                transform: translateX(5px);
+            }
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--secondary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.8);
+
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            transition: var(--transition);
+        }
+
+        .glass:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .sol-container {
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .sol-text {
+            flex: 1;
+        }
+
+        .sol-text h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .sol-text p {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            align-items: start;
+            gap: 15px;
+            font-weight: 500;
+        }
+
+        .feature-list i {
+            color: var(--primary);
+        }
+
+        .sol-visual {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .feature-img {
+            width: 100%;
+            border-radius: 12px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feat-card {
+            text-align: center;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feat-card i {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .feat-card h4 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .feat-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        #slide-database .feat-card {
+            border: 1px solid rgba(245, 158, 11, 0.2);
+
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.08) 100%);
+        }
+
+        #slide-database .feat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--secondary);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        #slide-database .feat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        #slide-database .feat-card code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #a5b4fc;
+        }
+
+        .arch-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        .arch-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            min-width: 180px;
+        }
+
+        .arch-node i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .arch-node span {
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-node p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .arch-arrow {
+            color: var(--glass-border);
+            font-size: 1.5rem;
+        }
+
+        .ui-showcase {
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .ui-mockup {
+            width: 300px;
+            height: 550px;
+            border-radius: 40px;
+            position: relative;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 8px solid #334155;
+        }
+
+        .mock-header {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .mock-map {
+            flex: 1;
+            background: #1e293b;
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mock-bus {
+            font-size: 2rem;
+            color: var(--primary);
+            animation: move-bus 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes move-bus {
+            from {
+                transform: translateX(-40px);
+            }
+
+            to {
+                transform: translateX(40px);
+            }
+        }
+
+        .mock-sheet {
+            height: 150px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .mock-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 0 auto 15px;
+        }
+
+        .mock-item {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .ui-badges {
+            display: flex;
+            gap: 10px;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            background: rgba(191, 30, 46, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .roadmap-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .roadmap-item {
+            flex: 1;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border-left: 2px solid var(--glass-border);
+        }
+
+        .roadmap-item:hover {
+            border-left-color: var(--secondary);
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
+        }
+
+        .roadmap-item .phase {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            background: rgba(191, 30, 46, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .roadmap-item h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .roadmap-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .thanks-title {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .closing-p {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-btn {
+            text-decoration: none;
+            color: white;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 0 5%;
+            }
+
+            .sol-container,
+            .ui-showcase,
+            .arch-container,
+            .roadmap-container {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .arch-arrow {
+                transform: rotate(90deg);
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+
+            .main-title {
+                font-size: 3.5rem;
+            }
+        }
+
+        .arch-layer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .arch-layer {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .arch-layer:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--secondary);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .layer-head {
+            color: var(--secondary);
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .layer-content {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .layer-arrow {
+            color: var(--text-muted);
+            opacity: 0.3;
+            font-size: 1rem;
+            margin: -5px 0;
+        }
+
+        .block-diagram-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .block-section {
+            position: relative;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .block-section::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -12px;
+            width: 2px;
+            height: 60%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .block-section:last-child::after {
+            display: none;
+        }
+
+        .block-section h4 {
+            color: var(--secondary);
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .block-node-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 500;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .block-node-item:hover {
+            background: rgba(191, 30, 46, 0.2);
+            border-color: var(--primary);
+        }
+
+        .qos-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .qos-table th {
+            text-align: left;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            padding: 0 1rem;
+        }
+
+        .qos-table td {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .qos-table tr td:first-child {
+            border-radius: 8px 0 0 8px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .qos-table tr td:last-child {
+            border-radius: 0 8px 8px 0;
+            text-align: right;
+            font-family: monospace;
+            color: #4ade80;
+        }
+
+        .sec-result {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: rgba(74, 222, 128, 0.1);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .sec-result.medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .packet-visual {
+            display: flex;
+            gap: 4px;
+            font-family: monospace;
+            margin-bottom: 1rem;
+        }
+
+        .packet-byte {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 8px 4px;
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-align: center;
+            flex: 1;
+            border-radius: 4px;
+        }
+
+        .packet-byte span {
+            display: block;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .port-box {
+            border: 1px dashed var(--glass-border);
+            padding: 1.5rem 1rem 1rem;
+            border-radius: 8px;
+            position: relative;
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .port-badge {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--dark);
+            padding: 0 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px dashed var(--glass-border);
+            border-radius: 4px;
+        }
+
+        .cost-table-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--light);
+        }
+
+        .cost-table th {
+            text-align: left;
+            padding: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .cost-table td {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .cost-table tr:last-child td {
+            border-bottom: none;
+            background: rgba(191, 30, 46, 0.1);
+            font-weight: 800;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+
+        .cost-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .challenge-card p strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .osi-layer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--glass-border);
+            transition: 0.3s;
+        }
+
+        .osi-layer:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--secondary);
+            transform: translateX(10px);
+        }
+
+        .osi-number {
+            font-weight: 800;
+            color: var(--text-muted);
+            font-size: 1rem;
+            width: 30px;
+        }
+
+        .osi-name {
+            flex: 1;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .osi-desc {
+            flex: 2;
+            font-size: 0.8rem;
+            text-align: right;
+            color: var(--light);
+        }
+
+        .topology-node-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .topo-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            min-width: 80px;
+        }
+
+        .topo-node i {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .topo-node span {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .topo-arrow {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        @media print {
+
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: var(--dark) !important;
+                color: var(--light) !important;
+                overflow: visible !important;
+            }
+
+            .cursor,
+            .cursor-follower,
+            .scroll-indicator,
+            .social-links,
+            #progress-bar {
+                display: none !important;
+            }
+
+            #presentation-container {
+                display: block !important;
+                overflow: visible !important;
+                height: auto !important;
+                width: 100% !important;
+            }
+
+            .slide {
+                height: 100vh !important;
+                width: 100% !important;
+                page-break-after: always;
+                break-after: always;
+                position: relative !important;
+                overflow: hidden !important;
+
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .glass,
+            .feat-card,
+            .card,
+            .osi-layer,
+            .topo-node {
+                background: rgba(30, 41, 59, 0.8) !important;
+
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+
+            p,
+            h1,
+            h2,
+            h3,
+            h4,
+            li {
+                color: #f8fafc !important;
+                text-shadow: none !important;
+            }
+
+            .section-title span,
+            .main-title span,
+            .tagline {
+                color: #BF1E2E !important;
+
+            }
+
+            .grid-2,
+            .feature-grid,
+            .block-diagram-grid {
+                display: grid !important;
+                gap: 20px !important;
+            }
+        }
+
+        .team-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .team-member:hover {
+            transform: translateX(10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .member-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), #ef4444);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(191, 30, 46, 0.4);
+        }
+
+        .member-info h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+            letter-spacing: 1px;
+        }
+
+        .member-info span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        #fullscreen-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #fullscreen-btn:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(191, 30, 46, 0.4);
+        }
+
+        #fullscreen-btn.hidden {
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        #fullscreen-btn .tooltip {
+            position: absolute;
+            right: 60px;
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--light);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #fullscreen-btn:hover .tooltip {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        @media print {
+            #fullscreen-btn {
+                display: none !important;
+            }
+        }
+
+        #command-palette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        #command-palette.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .command-box {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 1400px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.2s ease;
+        }
+
+        #command-palette.active .command-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .command-header kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.75rem;
+        }
+
+        #command-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            font-size: 1.2rem;
+            color: var(--light);
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        #command-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(191, 30, 46, 0.2);
+        }
+
+        #command-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .command-hint {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .command-hint span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slide-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .slide-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .slide-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .slide-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .slide-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .slide-item:hover,
+        .slide-item.selected {
+            background: rgba(191, 30, 46, 0.2);
+            border-color: rgba(191, 30, 46, 0.4);
+        }
+
+        .slide-item.hidden {
+            display: none;
+        }
+
+        .slide-num {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 0.7rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .slide-name {
+            flex: 1;
+            font-size: 0.8rem;
+            color: var(--light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .slide-item:hover .slide-num {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media print {
+            #command-palette {
+                display: none !important;
+            }
+        }
+
+        @media (display-mode: fullscreen) {
+            #fullscreen-btn {
+                display: none !important;
+            }
+        }
+
+        :fullscreen #fullscreen-btn {
+            display: none !important;
+        }
+
+        :-webkit-full-screen #fullscreen-btn {
+            display: none !important;
+        }
+
+        :-moz-full-screen #fullscreen-btn {
+            display: none !important;
+        }
+
+        :-ms-fullscreen #fullscreen-btn {
+            display: none !important;
+        }
+
+        #welcome-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            opacity: 1;
+            visibility: visible;
+            transition: all 0.4s ease;
+        }
+
+        #welcome-popup.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .welcome-box {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(191, 30, 46, 0.1);
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #welcome-popup:not(.hidden) .welcome-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(191, 30, 46, 0.4);
+        }
+
+        .welcome-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+
+        .welcome-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-tips {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-tip {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+        }
+
+        .welcome-tip i {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            width: 24px;
+        }
+
+        .welcome-tip-text {
+            flex: 1;
+        }
+
+        .welcome-tip-text strong {
+            color: var(--light);
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .welcome-tip-text span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .welcome-tip kbd {
+            background: rgba(191, 30, 46, 0.2);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid rgba(191, 30, 46, 0.3);
+        }
+
+        .welcome-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--primary), #ef4444);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(191, 30, 46, 0.4);
+        }
+
+        .welcome-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(191, 30, 46, 0.5);
+        }
+
+        .welcome-skip {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .welcome-skip:hover {
+            color: var(--light);
+        }
+
+        @media print {
+            #welcome-popup {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <div id="welcome-popup">
+        <div class="welcome-box">
+            <div class="welcome-icon">
+                <i class="fa-solid fa-rocket"></i>
+            </div>
+            <h2 class="welcome-title">Selamat Datang!</h2>
+            <p class="welcome-subtitle">Presentasi BIPOL Tracker siap dimulai</p>
+
+            <div class="welcome-tips">
+                <div class="welcome-tip">
+                    <i class="fa-solid fa-keyboard"></i>
+                    <div class="welcome-tip-text">
+                        <strong>Akses Slide Cepat</strong>
+                        <span>Lompat ke slide manapun dengan command palette</span>
+                    </div>
+                    <kbd>Ctrl + K</kbd>
+                </div>
+                <div class="welcome-tip">
+                    <i class="fa-solid fa-arrows-left-right"></i>
+                    <div class="welcome-tip-text">
+                        <strong>Navigasi Slide</strong>
+                        <span>Gunakan arrow keys untuk berpindah slide</span>
+                    </div>
+                    <kbd>← →</kbd>
+                </div>
+            </div>
+
+            <button class="welcome-btn" id="welcome-fullscreen-btn">
+                <i class="fa-solid fa-expand"></i>
+                Mulai Fullscreen
+            </button>
+            <p class="welcome-skip" id="welcome-skip">atau tekan Enter untuk lanjut</p>
+        </div>
+    </div>
+
+    <progress id="progress-bar" value="0" max="100"></progress>
+
+    <button id="fullscreen-btn" title="Fullscreen">
+        <i class="fa-solid fa-expand"></i>
+        <span class="tooltip">Tekan untuk Layar Penuh</span>
+    </button>
+
+    <div id="command-palette">
+        <div class="command-box">
+            <div class="command-header">
+                <i class="fa-solid fa-terminal"></i>
+                <span>Lompat ke Slide</span>
+                <kbd>Ctrl + K</kbd>
+            </div>
+            <input type="text" id="command-input" placeholder="Cari slide..." autocomplete="off">
+            <div class="slide-list" id="slide-list">
+
+            </div>
+            <div class="command-hint">
+                <span><kbd>↑↓</kbd> navigasi</span>
+                <span><kbd>Enter</kbd> pilih</span>
+                <span><kbd>Esc</kbd> tutup</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="presentation-container">
+        <div id="particles-js"
+            style="position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none;">
+        </div>
+
+        <section class="slide" id="slide-welcome">
+            <div class="background-elements">
+                <div class="circle circle-1"></div>
+                <div class="circle circle-2"></div>
+            </div>
+            <div class="content">
+                <img src="../frontend/public/images/loading-banner.png" alt="BIPOL Banner" class="welcome-logo">
+                <div class="tagline">TEKNIK INFORMATIKA DAN KOMPUTER</div>
+                <h1 class="main-title">BIPOL <span>TRACKER</span></h1>
+                <p class="subtitle">Pendalaman Teknis Bus Information & Positioning Online</p>
+                <div class="divider"></div>
+                <p class="author">Laporan Detail Proyek</p>
+                <div class="scroll-indicator">
+                    <span>Geser untuk Melanjutkan</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-team">
+            <div class="content">
+                <h2 class="section-title">Anggota <span>Kelompok</span></h2>
+                <ul class="team-list">
+                    <li class="team-member glass">
+                        <div class="member-icon"><i class="fa-solid fa-user"></i></div>
+                        <div class="member-info">
+                            <h4>MUHAMMAD IBNU FAUZI</h4>
+                            <span>NIM 2307422004</span>
+                        </div>
+                    </li>
+                    <li class="team-member glass">
+                        <div class="member-icon"><i class="fa-solid fa-user-gear"></i></div>
+                        <div class="member-info">
+                            <h4>MUHAMMAD ADIAN HENDRAWAN</h4>
+                            <span>NIM 2307422020</span>
+                        </div>
+                    </li>
+                    <li class="team-member glass">
+                        <div class="member-icon"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="member-info">
+                            <h4>RADITYA RAFALA</h4>
+                            <span>NIM 2307422010</span>
+                        </div>
+                    </li>
+                    <li class="team-member glass">
+                        <div class="member-icon"><i class="fa-solid fa-user-pen"></i></div>
+                        <div class="member-info">
+                            <h4>RAFA RAIHAN</h4>
+                            <span>NIM 2307422025</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-background">
+            <div class="content">
+                <h2 class="section-title">Latar <span>Belakang</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <i class="fa-solid fa-triangle-exclamation card-icon"></i>
+                        <h3>Permasalahan Utama</h3>
+                        <ul class="feature-list">
+                            <li><strong>Ketidakpastian Jadwal:</strong> <span>Mahasiswa menunggu tanpa estimasi waktu
+                                    yang jelas.</span></li>
+                            <li><strong>Inefisiensi Waktu:</strong> <span>Waktu terbuang hanya untuk menunggu bus di
+                                    halte.</span></li>
+                            <li><strong>Resiko Keselamatan:</strong> <span>Potensi kebocoran gas/asap pada armada tua
+                                    tanpa deteksi dini.</span></li>
+                        </ul>
+                    </div>
+                    <div class="card glass">
+                        <i class="fa-solid fa-lightbulb card-icon"></i>
+                        <h3>Urgensi Penelitian</h3>
+                        <p>Diperlukan sistem cerdas yang mengintegrasikan IoT dan Mobile Web untuk memberikan
+                            transparansi posisi armada dan pemantauan kondisi keselamatan secara <i>real-time</i>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-utility">
+            <div class="content">
+                <h2 class="section-title">Dasar <span>Teori</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <h3><i class="fa-solid fa-satellite"></i> Global Positioning System</h3>
+                        <p>Menggunakan prinsip <i>Trilaterasi</i> dengan minimal 4 satelit untuk menentukan koordinat
+                            presisi (Latitude, Longitude, Altitude).</p>
+                    </div>
+                    <div class="card glass">
+                        <h3><i class="fa-brands fa-internet-explorer"></i> IoT Architecture</h3>
+                        <p>Menerapkan model komunikasi Machine-to-Machine (M2M) dengan protokol ringan (UDP) untuk
+                            efisiensi bandwidth pada jaringan seluler GPRS.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-objectives">
+            <div class="content">
+                <h2 class="section-title">Tujuan & <span>Manfaat</span></h2>
+                <div class="feature-grid">
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-bullseye"></i>
+                        <h4>Transparansi</h4>
+                        <p>Menyediakan informasi lokasi dan estimasi kedatangan bus secara akurat.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-shield-heart"></i>
+                        <h4>Keselamatan</h4>
+                        <p>Mendeteksi anomali kadar gas berbahaya pada kabin bus.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <h4>Manajemen</h4>
+                        <p>Monitoring kinerja operasional armada bagi pengelola kampus.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-methodology">
+            <div class="content">
+                <h2 class="section-title">Metodologi <span>Pengembangan</span></h2>
+                <div class="roadmap-container">
+                    <div class="roadmap-item glass">
+                        <span class="phase">FASE 1</span>
+                        <h4>Analisis & Desain</h4>
+                        <p>Studi literatur, pengumpulan kebutuhan pengguna, dan perancangan arsitektur sistem (UML/ERD).
+                        </p>
+                    </div>
+                    <div class="roadmap-item glass">
+                        <span class="phase">FASE 2</span>
+                        <h4>Implementasi</h4>
+                        <p>Pengembangan Hardware (IoT), Backend (API), dan Frontend (Interface).</p>
+                    </div>
+                    <div class="roadmap-item glass">
+                        <span class="phase">FASE 3</span>
+                        <h4>Pengujian</h4>
+                        <p>Black Box Testing, Uji Latensi Jaringan, dan Uji Akurasi Sensor.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-summary">
+            <div class="content">
+                <h2 class="section-title">Ringkasan <span>Eksekutif</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <i class="fa-solid fa-layer-group card-icon"></i>
+                        <h3>IoT Full-Stack</h3>
+                        <p>Sistem pelacakan real-time end-to-end yang mengintegrasikan perangkat keras ESP32, backend
+                            Node.js, dan frontend PWA modern.</p>
+                    </div>
+                    <div class="card glass">
+                        <i class="fa-solid fa-bolt card-icon"></i>
+                        <h3>Latensi Rendah</h3>
+                        <p>Menggunakan protokol UDP untuk transmisi data perangkat dan WebSockets untuk distribusi
+                            klien, meminimalkan delay hingga &lt;1 detik.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-tech">
+            <div class="content">
+                <h2 class="section-title">Alur <span>Data</span></h2>
+                <div class="arch-container">
+                    <div class="arch-node glass">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span>AKUISISI</span>
+                        <p>GPS & Sensor<br>(Interval 1 Detik)</p>
+                    </div>
+                    <div class="arch-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    <div class="arch-node glass">
+                        <i class="fa-solid fa-tower-cell"></i>
+                        <span>TRANSMISI</span>
+                        <p>UDP via GPRS<br>(Modem Sim808)</p>
+                    </div>
+                    <div class="arch-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    <div class="arch-node glass">
+                        <i class="fa-solid fa-server"></i>
+                        <span>PEMROSESAN</span>
+                        <p>Server Node.js<br>(Validasi & DB)</p>
+                    </div>
+                    <div class="arch-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    <div class="arch-node glass">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <span>VISUALISASI</span>
+                        <p>Aplikasi Klien<br>(Update Socket.IO)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-architecture">
+            <div class="content">
+                <h2 class="section-title">Arsitektur <span>Sistem</span></h2>
+                <div class="grid-2">
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-sitemap"></i> Stack Layer</h3>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Struktur hierarki komponen sistem:
+                        </p>
+
+                        <div class="arch-layer-container">
+                            <div class="arch-layer">
+                                <div class="layer-head">Application Layer</div>
+                                <div class="layer-content">
+                                    <span class="badge">Web Dashboard</span>
+                                    <span class="badge">Mobile PWA</span>
+                                    <span class="badge">Notifications</span>
+                                </div>
+                            </div>
+                            <div class="layer-arrow"><i class="fa-solid fa-arrow-down"></i> <i
+                                    class="fa-solid fa-arrow-up"></i></div>
+                            <div class="arch-layer">
+                                <div class="layer-head">Platform Layer</div>
+                                <div class="layer-content">
+                                    <span class="badge">Node.js API</span>
+                                    <span class="badge">PostgreSQL DB</span>
+                                    <span class="badge">Socket.IO Broker</span>
+                                </div>
+                            </div>
+                            <div class="layer-arrow"><i class="fa-solid fa-arrow-up"></i></div>
+                            <div class="arch-layer">
+                                <div class="layer-head">Infrastructure Layer</div>
+                                <div class="layer-content">
+                                    <span class="badge">GPRS Network</span>
+                                    <span class="badge">UDP Protocol</span>
+                                    <span class="badge">Cloud VPS</span>
+                                </div>
+                            </div>
+                            <div class="layer-arrow"><i class="fa-solid fa-arrow-up"></i></div>
+                            <div class="arch-layer">
+                                <div class="layer-head">Physical Layer</div>
+                                <div class="layer-content">
+                                    <span class="badge">ESP32</span>
+                                    <span class="badge">GPS NEO-6M</span>
+                                    <span class="badge">Sensor MQ-2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h3><i class="fa-solid fa-cubes"></i> Integrasi Menyeluruh</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 2rem;">Sistem BIPOL dirancang dengan
+                            pendekatan
+                            <strong>Layered Microservice Architecture</strong> untuk memastikan modularitas dan
+                            skalabilitas.
+                        </p>
+
+                        <ul class="feature-list">
+                            <li>
+                                <strong>Modularitas:</strong>
+                                <span>Pemisahan jelas antara perangkat keras (Edge) dan perangkat lunak (Cloud).</span>
+                            </li>
+                            <li>
+                                <strong>Skalabilitas:</strong>
+                                <span>Backend berbasis Node.js mampu menangani ribuan koneksi konkuren via
+                                    WebSockets.</span>
+                            </li>
+                            <li>
+                                <strong>Reliabilitas:</strong>
+                                <span>Penggunaan protokol UDP untuk transmisi data sensor menjamin overhead data yang
+                                    minim.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-block-diagram">
+            <div class="content">
+                <h2 class="section-title">Diagram Blok <span>Sistem</span></h2>
+                <div class="block-diagram-grid">
+                    <div class="glass block-section">
+                        <h4>INPUT</h4>
+                        <div class="block-node-item">GPS Module</div>
+                        <div class="block-node-item">MQ-2 Sensor</div>
+                    </div>
+                    <div class="glass block-section">
+                        <h4>PROCESS</h4>
+                        <div class="block-node-item">ESP32 MCU</div>
+                        <i class="fa-solid fa-arrow-down" style="color: var(--text-muted); opacity: 0.5;"></i>
+                        <div class="block-node-item">Server Node.js</div>
+                    </div>
+                    <div class="glass block-section">
+                        <h4>OUTPUT</h4>
+                        <div class="block-node-item">Web Dashboard</div>
+                        <div class="block-node-item">LCD 16x2</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-osi">
+            <div class="content">
+                <h2 class="section-title">Topologi <span>Jaringan</span></h2>
+                <div class="grid-2">
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-network-wired"></i> Arsitektur Sistem</h3>
+                        <p style="margin-bottom: 2rem; color: var(--text-muted);">Visualisasi topologi konektivitas
+                            end-to-end:</p>
+                        <div class="topology-node-container">
+                            <div class="topo-node">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>End Node</span>
+                                <small style="font-size: 0.6rem; opacity: 0.7;">ESP32 + Sensors</small>
+                            </div>
+                            <div class="topo-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="topo-node">
+                                <i class="fa-solid fa-tower-broadcast"></i>
+                                <span>Gateway</span>
+                                <small style="font-size: 0.6rem; opacity: 0.7;">GPRS Network</small>
+                            </div>
+                            <div class="topo-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="topo-node">
+                                <i class="fa-solid fa-server"></i>
+                                <span>Server</span>
+                                <small style="font-size: 0.6rem; opacity: 0.7;">Node.js / DB</small>
+                            </div>
+                            <div class="topo-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="topo-node">
+                                <i class="fa-solid fa-laptop-code"></i>
+                                <span>Client</span>
+                                <small style="font-size: 0.6rem; opacity: 0.7;">Admin / User</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-layer-group"></i> 7 Layer OSI</h3>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Pemetaan protokol komunikasi sistem:
+                        </p>
+
+                        <div>
+                            <div class="osi-layer">
+                                <span class="osi-number">7</span>
+                                <span class="osi-name">APPLICATION</span>
+                                <span class="osi-desc">HTTP / WebSocket (Socket.io)</span>
+                            </div>
+                            <div class="osi-layer">
+                                <span class="osi-number">4</span>
+                                <span class="osi-name">TRANSPORT</span>
+                                <span class="osi-desc">UDP (Sensor) & TCP (Web)</span>
+                            </div>
+                            <div class="osi-layer">
+                                <span class="osi-number">3</span>
+                                <span class="osi-name">NETWORK</span>
+                                <span class="osi-desc">IP Address Routing</span>
+                            </div>
+                            <div class="osi-layer">
+                                <span class="osi-number">1</span>
+                                <span class="osi-name">PHYSICAL</span>
+                                <span class="osi-desc">Radio RF (GPRS) / WiFi</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-network-deep">
+            <div class="content">
+                <h2 class="section-title">Deep Dive <span>Jaringan</span></h2>
+                <div class="grid-2">
+
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-server"></i> Topologi Logis & Port</h3>
+                        <p style="margin-bottom: 1rem;">Konfigurasi <i>Dual-Stack Port</i> pada server untuk segregasi
+                            trafik:</p>
+
+                        <div class="port-box">
+                            <span class="port-badge">CLOUD VPS / DOCKER</span>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem; gap: 10px;">
+                                <div
+                                    style="text-align:center; background: rgba(245, 158, 11, 0.1); padding: 10px; border-radius: 8px; flex: 1;">
+                                    <i class="fa-solid fa-door-open" style="color:#f59e0b; font-size:1.5rem;"></i>
+                                    <div style="font-weight:800; margin-top:5px; color: #f59e0b;">PORT 3333</div>
+                                    <small style="color:var(--text-muted); font-size: 0.7rem;">UDP INBOUND<br>(Sensor
+                                        Data)</small>
+                                </div>
+                                <div
+                                    style="text-align:center; background: rgba(74, 222, 128, 0.1); padding: 10px; border-radius: 8px; flex: 1;">
+                                    <i class="fa-solid fa-door-open" style="color:#4ade80; font-size:1.5rem;"></i>
+                                    <div style="font-weight:800; margin-top:5px; color: #4ade80;">PORT 3000</div>
+                                    <small style="color:var(--text-muted); font-size: 0.7rem;">TCP
+                                        HTTP/WS<br>(Dashboard)</small>
+                                </div>
+                            </div>
+                            <div
+                                style="background:rgba(255,255,255,0.05); padding:0.8rem; border-radius:4px; text-align:center; font-size: 0.9rem;">
+                                <i class="fa-brands fa-docker"></i> <strong>Bridged Network Interface</strong>
+                            </div>
+                        </div>
+
+                        <ul class="feature-list" style="margin-top:1.5rem; font-size:0.9rem;">
+                            <li><i class="fa-solid fa-arrows-split-up-and-left"></i> <strong>NAT Strategy:</strong>
+                                Mapping
+                                Public IP ke Container Private IP.</li>
+                            <li><i class="fa-solid fa-shield-cat"></i> <strong>Firewall Rules:</strong> Hanya Allow Port
+                                80, 443, 3000, 3333.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-file-code"></i> Efisiensi Protokol</h3>
+                        <p style="margin-bottom: 1.5rem;">Desain paket data UDP kustom untuk meminimalisir
+                            <i>overhead</i>
+                            jaringan GPRS 2G/3G.
+                        </p>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <small
+                                style="display:block; margin-bottom:5px; color:var(--text-muted); font-weight: 600;">RAW
+                                PAYLOAD FORMAT:</small>
+                            <code
+                                style="background:rgba(0,0,0,0.3); padding:0.8rem; display:block; border-radius:6px; color:#4ade80; font-family: monospace; border: 1px solid rgba(74, 222, 128, 0.3);">
+                                BIP001,-6.392,106.829,45,0
+                            </code>
+                        </div>
+
+                        <div class="packet-visual">
+                            <div class="packet-byte">ID<span>6 BYTE</span></div>
+                            <div class="packet-byte">LAT<span>7 BYTE</span></div>
+                            <div class="packet-byte">LON<span>8 BYTE</span></div>
+                            <div class="packet-byte">SPD<span>2 BYTE</span></div>
+                            <div class="packet-byte">GAS<span>1 BYTE</span></div>
+                        </div>
+
+                        <p style="font-size:0.85rem; color:var(--text-muted); text-align: center; margin-bottom: 1rem;">
+                            Total Packet Size: <strong>~24-30 Bytes</strong> (Bandwidth Friendly)</p>
+
+                        <div
+                            style="padding-top:1rem; border-top:1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="display: block; font-size: 0.9rem; color: var(--secondary);">Konsumsi
+                                    Data /
+                                    Jam</strong>
+                                <span style="font-size: 0.8rem; opacity: 0.7;">(Asumsi update 1 detik)</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 1.2rem; font-weight: 800; color: var(--light);">~108 KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-database">
+            <div class="content">
+                <h2 class="section-title">Topologi <span>Database</span></h2>
+                <div class="feature-grid">
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-database"></i>
+                        <h4>Data Pelacak</h4>
+                        <p>Tabel <code>bipol_tracker</code> menyimpan <i>Time-Series Data</i>: lokasi, kecepatan, dan
+                            kadar gas setiap detik.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-draw-polygon"></i>
+                        <h4>Data Spasial</h4>
+                        <p>Tabel <code>geofences</code> & <code>geofence_events</code> menangani logika area virtual dan
+                            pencatatan event keluar-masuk bus.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <h4>Pengguna & Otentikasi</h4>
+                        <p><code>admin_users</code> & <code>drivers</code> mengelola akses sistem. Dilindungi oleh
+                            <i>Row Level Security (RLS)</i>.
+                        </p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-comments"></i>
+                        <h4>Interaksi</h4>
+                        <p><code>lost_items</code> & <code>feedback</code> menampung laporan pengguna untuk interaksi
+                            komunitas.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-security">
+            <div class="content">
+                <h2 class="section-title">Keamanan & <span>Infra</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <h3><i class="fa-solid fa-shield-halved"></i> Stack Keamanan</h3>
+                        <ul class="feature-list" style="margin-top: 15px;">
+                            <li><strong>Helmet & CORS:</strong> Proteksi HTTP Headers & Cross-Origin.</li>
+                            <li><strong>Rate Limiting:</strong> Mencegah serangan DDoS pada API endpoint.</li>
+                            <li><strong>HPP:</strong> Mencegah <i>HTTP Parameter Pollution</i>.</li>
+                            <li><strong>Session Auth:</strong> Manajemen sesi aman untuk Admin Dashboard.</li>
+                        </ul>
+                    </div>
+                    <div class="card glass">
+                        <h3><i class="fa-brands fa-docker"></i> Strategi DevOps</h3>
+                        <ul class="feature-list" style="margin-top: 15px;">
+                            <li><strong>Containerized:</strong> Dukungan penuh Docker (Service + Database).</li>
+                            <li><strong>Eksposur Dual-Port:</strong> Mapping Port 3000 (HTTP) & 3333 (UDP).</li>
+                            <li><strong>Konfigurasi Env:</strong> Konfigurasi fleksibel via <code>.env</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-hardware-specs">
+            <div class="content">
+                <h2 class="section-title">Spesifikasi <span>Hardware</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <h3>Microcontroller Unit (MCU)</h3>
+                        <ul class="feature-list">
+                            <li><strong>ESP32 DevKit V1:</strong> Dual-core 32-bit LX6, 240 MHz.</li>
+                            <li><strong>Memory:</strong> 520 KB SRAM, 4 MB Flash.</li>
+                            <li><strong>Connectivity:</strong> WiFi 802.11 b/g/n & Bluetooth 4.2.</li>
+                        </ul>
+                    </div>
+                    <div class="card glass">
+                        <h3>Modul Komunikasi & Sensor</h3>
+                        <ul class="feature-list">
+                            <li><strong>SIM808 (GSM+GPS):</strong> GPRS Class 12, GPS Accuracy < 2.5m CEP.</li>
+                            <li><strong>MQ-2 Gas Sensor:</strong> Deteksi LPG, Propana, Hidrogen (Range 300-10000 ppm).
+                            </li>
+                            <li><strong>I2C LCD 16x2:</strong> Interface visual driver lokal.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-firmware">
+            <div class="content">
+                <h2 class="section-title">Bedah Teknis: <span>Firmware</span></h2>
+                <div class="feature-grid">
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-microchip"></i>
+                        <h4>Inti Perangkat Keras</h4>
+                        <p>ESP32 sebagai kontroler utama + SIM808 untuk konektivitas GPS/GPRS.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-file-code"></i>
+                        <h4>Alur Logika</h4>
+                        <p>Looping <code>BipolTracker_V2.ino</code> membaca stream NMEA setiap detik.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-network-wired"></i>
+                        <h4>Protokol Optimal</h4>
+                        <p>Data dikirim via UDP sebagai string CSV (<code>id,lat,lon,speed,gas</code>) untuk efisiensi
+                            byte.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <h4>Sensor Keselamatan</h4>
+                        <p>Integrasi Sensor MQ-2 untuk deteksi dini kebocoran gas/asap di bus.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-backend">
+            <div class="content">
+                <h2 class="section-title">Bedah Teknis: <span>Backend</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <h3><i class="fa-brands fa-node-js"></i> Jembatan Layanan UDP</h3>
+                        <p>Modul <code>udpService.js</code> bertindak sebagai pendengar socket mentah. Modul ini
+                            mem-parsing CSV, memvalidasi geolokasi (mencegah koordinat 0,0), dan menyuntikkan data ke
+                            pipeline database.</p>
+                    </div>
+                    <div class="card glass">
+                        <h3><i class="fa-solid fa-database"></i> Penyimpanan Supabase</h3>
+                        <p>Penyimpanan PostgreSQL dengan tabel <code>bipol_tracker</code> yang bersifat
+                            <i>append-only</i> untuk jejak audit rute historis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-frontend">
+            <div class="content">
+                <h2 class="section-title">Bedah Teknis: <span>Frontend</span></h2>
+                <div class="feature-grid">
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <h4>MapLibre GL</h4>
+                        <p>Rendering peta vektor performa tinggi dengan overlay penanda khusus.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-bolt"></i>
+                        <h4>Berbasis Event</h4>
+                        <p><code>socket.on('update_bus')</code> memicu animasi pergerakan tanpa reload halaman.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-mobile-button"></i>
+                        <h4>PWA Native-Like</h4>
+                        <p>Service Worker (<code>sw.js</code>) melakukan caching aset statis untuk waktu muat instan &
+                            mode offline.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-brands fa-js"></i>
+                        <h4>Modul Vanilla JS</h4>
+                        <p>Arsitektur modular tanpa framework berat, memastikan performa maksimal.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-intro">
+            <div class="content">
+                <h2 class="section-title">Implementasi <span>Antarmuka</span></h2>
+                <div class="feature-grid">
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-desktop"></i>
+                        <h4>Web Dashboard</h4>
+                        <p>Pusat kontrol visual untuk operator memantau seluruh pergerakan armada.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <h4>Akses Publik</h4>
+                        <p>Desain responsif memudahkan mahasiswa mengecek posisi bus via smartphone.</p>
+                    </div>
+                    <div class="feat-card glass">
+                        <i class="fa-solid fa-pager"></i>
+                        <h4>Hardware Display</h4>
+                        <p>LCD 16x2 pada perangkat memberikan informasi status langsung kepada supir.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-main">
+            <div class="content">
+                <h2 class="section-title">Halaman <span>Utama</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 2;">
+                        <img src="Halaman-Utama.png" alt="Dashboard Utama BIPOL"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: var(--secondary); color: #000; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+                            LIVE MONITORING
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Pusat Komando<br>Digital
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Dashboard interaktif menampilkan posisi bus <strong>real-time</strong>, rute aktif, estimasi
+                            kedatangan, dan status sensor keselamatan secara presisi.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid var(--glass-border);">
+                                <i class="fa-solid fa-satellite-dish"
+                                    style="color: var(--primary); font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600;">GPS Tracking</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid var(--glass-border);">
+                                <i class="fa-solid fa-triangle-exclamation"
+                                    style="color: var(--secondary); font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600;">Early Warning</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-alert">
+            <div class="content">
+                <h2 class="section-title">Fitur <span>Peringatan Dini</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #ef4444; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                            CRITICAL ALERT
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Deteksi Kebocoran<br>Gas Rawan
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Sistem secara otomatis memunculkan <strong>Pop-up Peringatan</strong> di dashboard admin
+                            sesaat setelah sensor mendeteksi kadar gas di atas ambang batas aman.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #ef4444;">
+                                <i class="fa-solid fa-bell"
+                                    style="color: #ef4444; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #fca5a5;">Real-time
+                                    Notif</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Popup-Alert.png" alt="Gas Alert Popup"
+                            style="width: 100%; height: auto; border: none; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.3));">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-info">
+            <div class="content">
+                <h2 class="section-title">Halaman <span>Informasi</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Info.png" alt="Halaman Informasi"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: var(--primary); color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(191, 30, 46, 0.4);">
+                            COMMUNITY HUB
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Pusat Informasi &<br>Barang Hilang
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Fitur interaktif yang memfasilitasi komunikasi satu arah dari Admin ke Mahasiswa, termasuk
+                            update operasional bus dan info <strong>Lost & Found</strong>.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid var(--glass-border);">
+                                <i class="fa-solid fa-bullhorn"
+                                    style="color: var(--primary); font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600;">Broadcast</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid var(--glass-border);">
+                                <i class="fa-solid fa-box-open"
+                                    style="color: #f59e0b; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600;">Lost Items</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-faq">
+            <div class="content">
+                <h2 class="section-title">Halaman <span>Bantuan</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #3b82f6; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+                            HELP CENTER
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Pusat Solusi &<br>Panduan Pengguna
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Bank pertanyaan umum (FAQ) yang membantu pengguna memahami rute, jadwal, dan cara melaporkan
+                            barang tertinggal dengan mandiri.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #3b82f6;">
+                                <i class="fa-solid fa-circle-question"
+                                    style="color: #3b82f6; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #93c5fd;">Common
+                                    Q&A</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-FAQ.png" alt="Halaman FAQ"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-login">
+            <div class="content">
+                <h2 class="section-title">Halaman <span>Login</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Login.png" alt="Halaman Login"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: #8b5cf6; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
+                            SECURE ACCESS
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Gerbang Utama<br>Administrator
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Portal otentikasi terenkripsi tunggal untuk operator mengelola seluruh armada, pengguna, dan
+                            konfigurasi sistem.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #8b5cf6;">
+                                <i class="fa-solid fa-lock"
+                                    style="color: #8b5cf6; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #c4b5fd;">Encrypted</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #8b5cf6;">
+                                <i class="fa-solid fa-user-shield"
+                                    style="color: #d8b4fe; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #c4b5fd;">Admin
+                                    Only</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-overview">
+            <div class="content">
+                <h2 class="section-title">Admin <span>Dashboard</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #06b6d4; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);">
+                            SYSTEM CONTROL
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Monitoring &<br>Publikasi Info
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Pantau status sistem (Operational), jumlah armada aktif, dan broadcast pengumuman ke seluruh
+                            pengguna secara real-time.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(6, 182, 212, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #06b6d4;">
+                                <i class="fa-solid fa-bullhorn"
+                                    style="color: #06b6d4; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #67e8f9;">Broadcast
+                                    Tool</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(6, 182, 212, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #06b6d4;">
+                                <i class="fa-solid fa-bus-simple"
+                                    style="color: #22d3ee; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #67e8f9;">Fleet
+                                    Status</span>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/overview.png" alt="Admin Dashboard Overview"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-analytics">
+            <div class="content">
+                <h2 class="section-title">Analitik & <span>Laporan</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Analytics.png" alt="Admin Analytics Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: #10b981; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
+                            DATA INSIGHTS
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Analitik Armada &<br>Ekspor Data
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Visualisasi mendalam performa armada: <strong>Max Gas Level: 935</strong>, <strong>Active
+                                Hours: 1h</strong>, dengan fitur ekspor laporan ke CSV/PDF.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #10b981;">
+                                <i class="fa-solid fa-file-export"
+                                    style="color: #10b981; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #6ee7b7;">Export
+                                    Tools</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #10b981;">
+                                <i class="fa-solid fa-chart-line"
+                                    style="color: #34d399; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #6ee7b7;">Telemetry</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-logs">
+            <div class="content">
+                <h2 class="section-title">Log <span>Kendaraan</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #6366f1; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+                            REAL-TIME AUDIT
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Vehicle Logs &<br>Riwayat Data
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Rekaman jejak digital lengkap: <strong>Bus ID, Koordinat, Speed, Gas, Time</strong>.
+                            Dilengkapi fitur <strong>Filter by ID</strong>, Calendar Picker, dan Sorting (Newest First).
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #6366f1;">
+                                <i class="fa-solid fa-filter"
+                                    style="color: #6366f1; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600; color: #a5b4fc;">Adv.
+                                    Filter</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #6366f1;">
+                                <i class="fa-solid fa-table-list"
+                                    style="color: #818cf8; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #a5b4fc;">Detailed
+                                    List</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Live-Log.png" alt="Vehicle Logs Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-geofence">
+            <div class="content">
+                <h2 class="section-title">Pemantauan <span>Zona</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Halaman-Geofence .png" alt="Geofence Events Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: #ec4899; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);">
+                            ZONE CONTROL
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Geofence Events &<br>Tracking Area
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Sistem otomatis mencatat waktu masuk/keluar bus dari zona yang ditentukan (misal: "Halte
+                            PNJ", "Gerbang Utama").
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #ec4899;">
+                                <i class="fa-solid fa-map-marked-alt"
+                                    style="color: #ec4899; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600; color: #fbcfe8;">Zone
+                                    Mont.</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #ec4899;">
+                                <i class="fa-solid fa-clock-rotate-left"
+                                    style="color: #f472b6; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #fbcfe8;">Event
+                                    Log</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-lost-items">
+            <div class="content">
+                <h2 class="section-title">Laporan <span>Barang</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #f97316; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);">
+                            LOST & FOUND
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Manajemen Laporan<br>Barang Hilang
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Rekapitulasi laporan kehilangan dari mahasiswa dengan detail: <strong>Waktu, Plat Bus,
+                                Kontak WA, & Status</strong>.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(249, 115, 22, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #f97316;">
+                                <i class="fa-brands fa-whatsapp"
+                                    style="color: #f97316; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #fdba74;">Direct
+                                    Chat</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(249, 115, 22, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #f97316;">
+                                <i class="fa-solid fa-list-check"
+                                    style="color: #fb923c; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #fdba74;">Track
+                                    Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Feedback/Halaman-LostItem.png" alt="Lost Items Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-feedback">
+            <div class="content">
+                <h2 class="section-title">Umpan Balik <span>Umum</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Feedback/Halaman-General-Feedback.png" alt="General Feedback Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: #8b5cf6; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
+                            USER VOICES
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Kritik & Saran<br>Pengguna
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Wadah aspirasi mahasiswa untuk pengembangan sistem ke depan. Menampilkan: <strong>Nama,
+                                Pesan, & Opsi Aksi</strong>.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #8b5cf6;">
+                                <i class="fa-solid fa-comments"
+                                    style="color: #8b5cf6; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #c4b5fd;">Community</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #8b5cf6;">
+                                <i class="fa-solid fa-trash-can"
+                                    style="color: #d8b4fe; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #c4b5fd;">Moderation</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-ui-admin-settings">
+            <div class="content">
+                <h2 class="section-title">Konfigurasi <span>Sistem</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1; text-align: right;">
+                        <span class="badge"
+                            style="background: #64748b; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(100, 116, 139, 0.4);">
+                            FULL CONTROL
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Pengaturan &<br>Parameter Alat
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Kontrol penuh atas ambang batas sensor <strong>(Gas Threshold: 600)</strong>, keamanan akun
+                            (Password), dan monitoring kesehatan server (RAM/Uptime).
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(100, 116, 139, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #94a3b8;">
+                                <i class="fa-solid fa-sliders"
+                                    style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #cbd5e1;">Thresholds</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(100, 116, 139, 0.1); padding: 15px; border-radius: 12px; border: 1px solid #94a3b8;">
+                                <i class="fa-solid fa-heart-pulse"
+                                    style="color: #4ade80; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span style="display: block; font-size: 0.75rem; font-weight: 600; color: #cbd5e1;">Sys
+                                    Health</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Halaman-Settings.png" alt="Settings Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        </section>
+
+        <section class="slide" id="slide-ui-admin-drivers">
+            <div class="content">
+                <h2 class="section-title">Manajemen <span>Supir</span></h2>
+
+                <div style="display: flex; align-items: center; gap: 40px; height: 100%;">
+
+                    <div style="flex: 1.5;">
+                        <img src="Halaman-Admin/Halaman-Manage-Drivers.png" alt="Manage Drivers Dashboard"
+                            style="width: 100%; height: auto; border: none; box-shadow: none;">
+                    </div>
+
+                    <div style="flex: 1; text-align: left;">
+                        <span class="badge"
+                            style="background: #14b8a6; color: #fff; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; margin-bottom: 1.5rem; display: inline-block; box-shadow: 0 4px 15px rgba(20, 184, 166, 0.4);">
+                            DRIVER ACCESS
+                        </span>
+
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--light); line-height: 1.2;">
+                            Daftar & Kelola<br>Akun Supir
+                        </h3>
+
+                        <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                            Registrasi akun supir baru dengan <strong>Plat Bus</strong> sebagai ID Login. Mendukung
+                            password otomatis dan tabel daftar supir aktif.
+                        </p>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div
+                                style="text-align: center; background: rgba(20, 184, 166, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #14b8a6;">
+                                <i class="fa-solid fa-id-card"
+                                    style="color: #14b8a6; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #99f6e4;">Registration</span>
+                            </div>
+                            <div
+                                style="text-align: center; background: rgba(20, 184, 166, 0.1); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #14b8a6;">
+                                <i class="fa-solid fa-key"
+                                    style="color: #5eead4; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                                <span
+                                    style="display: block; font-size: 0.75rem; font-weight: 600; color: #99f6e4;">Access
+                                    Control</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-qos">
+            <div class="content">
+                <h2 class="section-title">Quality of <span>Service (QoS)</span></h2>
+                <div class="grid-2">
+                    <div class="glass">
+                        <h3><i class="fa-solid fa-chart-area"></i> Metrik Kinerja Jaringan</h3>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Parameter QoS referensi untuk
+                            jaringan GPRS (2.5G) vs Target Sistem:</p>
+
+                        <table class="qos-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Standar (ITU-T)</th>
+                                    <th style="text-align: right;">Capaian / Target*</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Throughput</td>
+                                    <td>> 50 Kbps</td>
+                                    <td>~40-80 Kbps</td>
+                                </tr>
+                                <tr>
+                                    <td>Packet Loss</td>
+                                    <td>
+                                        < 3%</td>
+                                    <td>
+                                        < 5% (GPRS)</td>
+                                </tr>
+                                <tr>
+                                    <td>Delay (Latency)</td>
+                                    <td>
+                                        < 400 ms</td>
+                                    <td>~600-800 ms</td>
+                                </tr>
+                                <tr>
+                                    <td>Jitter</td>
+                                    <td>
+                                        < 30 ms</td>
+                                    <td>~50 ms</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 15px; font-style: italic;">
+                            *Angka di atas adalah estimasi teoritis standar GPRS. Untuk hasil skripsi yang valid,
+                            silakan update kolom ini dengan data hasil pengujian lapangan perangkat Anda sendiri.
+                        </p>
+                    </div>
+
+                    <div class="glass" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h3><i class="fa-solid fa-square-check"></i> Analisis Data</h3>
+                        <ul class="feature-list">
+                            <li>
+                                <strong>High Latency Mitigation:</strong>
+                                <span>Latency GPRS memang tinggi (~600ms), namun diatasi dengan algoritma <i>Store &
+                                        Forward</i> pada firmware ESP32.</span>
+                            </li>
+                            <li>
+                                <strong>Reliabilitas Data:</strong>
+                                <span>Meskipun throughput rendah, protokol UDP (24 bytes) menjamin data tetap terkirim
+                                    lancar.</span>
+                            </li>
+                            <li>
+                                <strong>Saran Pengujian:</strong>
+                                <span>Lakukan "Ping Test" dari server ke device sebanyak 30x untuk mendapatkan rata-rata
+                                    RTT (Round Trip Time) yang akurat.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-sec-test">
+            <div class="content">
+                <h2 class="section-title">Uji <span>Keamanan</span></h2>
+                <div class="feature-grid">
+
+                    <div class="feat-card glass" style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="flex: 1;">
+                            <i class="fa-solid fa-user-lock"
+                                style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Brute Force Auth</h4>
+                            <p
+                                style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                                Simulasi serangan login pada panel admin.</p>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <div class="sec-result"
+                                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; margin-bottom: 0.8rem; border-radius: 8px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80;">
+                                <i class="fa-solid fa-check-circle"
+                                    style="font-size: 1rem; transform: translateY(6px);"></i>
+                                <span
+                                    style="font-weight: 800; letter-spacing: 0.5px; font-size: 0.9rem;">PROTECTED</span>
+                            </div>
+                            <p
+                                style="font-size: 0.75rem; color: var(--text-muted); padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); line-height: 1.4; min-height: 40px;">
+                                Rate Limiter aktif setelah 5x gagal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="feat-card glass" style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="flex: 1;">
+                            <i class="fa-solid fa-code"
+                                style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">SQL Injection</h4>
+                            <p
+                                style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                                Injeksi query berbahaya pada endpoint API.</p>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <div class="sec-result"
+                                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; margin-bottom: 0.8rem; border-radius: 8px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80;">
+                                <i class="fa-solid fa-check-circle"
+                                    style="font-size: 1rem; transform: translateY(6px);"></i>
+                                <span style="font-weight: 800; letter-spacing: 0.5px; font-size: 0.9rem;">AMAN</span>
+                            </div>
+                            <p
+                                style="font-size: 0.75rem; color: var(--text-muted); padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); line-height: 1.4; min-height: 40px;">
+                                Menggunakan ORM & Parameterized Queries.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="feat-card glass" style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="flex: 1;">
+                            <i class="fa-solid fa-globe"
+                                style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">XSS Attack</h4>
+                            <p
+                                style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                                Scripting pada input form feedback pengguna.</p>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <div class="sec-result"
+                                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; margin-bottom: 0.8rem; border-radius: 8px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80;">
+                                <i class="fa-solid fa-check-circle"
+                                    style="font-size: 1rem; transform: translateY(6px);"></i>
+                                <span
+                                    style="font-weight: 800; letter-spacing: 0.5px; font-size: 0.9rem;">SANITIZED</span>
+                            </div>
+                            <p
+                                style="font-size: 0.75rem; color: var(--text-muted); padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); line-height: 1.4; min-height: 40px;">
+                                Input escaping otomatis di Frontend.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="feat-card glass" style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="flex: 1;">
+                            <i class="fa-solid fa-network-wired"
+                                style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">DDoS Dasar</h4>
+                            <p
+                                style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                                Flooding request ke port UDP & HTTP secara masif.</p>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <div class="sec-result"
+                                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; margin-bottom: 0.8rem; border-radius: 8px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b;">
+                                <i class="fa-solid fa-triangle-exclamation"
+                                    style="font-size: 1rem; transform: translateY(6px);"></i>
+                                <span
+                                    style="font-weight: 800; letter-spacing: 0.5px; font-size: 0.9rem;">MITIGATED</span>
+                            </div>
+                            <p
+                                style="font-size: 0.75rem; color: var(--text-muted); padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); line-height: 1.4; min-height: 40px;">
+                                Nginx Rate Limit menangani spike data.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-challenges">
+            <div class="content">
+                <h2 class="section-title">Tantangan & <span>Solusi</span></h2>
+                <div class="grid-2">
+                    <div class="card glass">
+                        <h3><i class="fa-solid fa-bug"></i> Kendala Sinyal</h3>
+                        <p><strong>Masalah:</strong> Blank spot di area gedung parkir menyebabkan data loss.<br><br>
+                            <strong>Solusi:</strong> Firmware menyimpan buffer lokal dan mengirim ulang paket saat
+                            sinyal kembali (Store & Forward).
+                        </p>
+                    </div>
+                    <div class="card glass">
+                        <h3><i class="fa-solid fa-server"></i> Beban Server</h3>
+                        <p><strong>Masalah:</strong> Koneksi WebSocket memakan memori tinggi.<br><br>
+                            <strong>Solusi:</strong> Implementasi interval update adaptif (berubah lambat saat bus
+                            berhenti).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-closing" style="position: relative; overflow: hidden;">
+            <div class="content" style="z-index: 2; position: relative;">
+                <div style="display: flex; align-items: center; gap: 60px; justify-content: center;">
+
+                    <div
+                        style="flex: 1; display: flex; justify-content: center; position: relative; align-items: center;">
+                        <img src="../frontend/public/images/header.png" alt="BIPOL Header"
+                            style="width: 280px; height: auto; position: relative; filter: drop-shadow(0 15px 35px rgba(0,0,0,0.5));">
+                    </div>
+
+                    <div
+                        style="width: 1px; height: 250px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);">
+                    </div>
+
+                    <div
+                        style="flex: 1; display: flex; justify-content: center; position: relative; align-items: center;">
+                        <img src="Logo PNJ.png" alt="Logo PNJ"
+                            style="width: 280px; height: auto; position: relative; filter: drop-shadow(0 15px 35px rgba(0,0,0,0.5));">
+                    </div>
+
+                    <div style="flex: 1.5; text-align: left;">
+                        <span
+                            style="font-family: 'Space Mono', monospace; color: var(--secondary); letter-spacing: 4px; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 1.5rem; font-weight: 700;">End
+                            of Presentation</span>
+
+                        <h2
+                            style="font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 2rem; color: #fff;">
+                            Terima <span
+                                style="color: var(--primary); text-shadow: 0 0 30px rgba(191, 30, 46, 0.4);">Kasih</span>
+                        </h2>
+
+                        <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 2.5rem;">
+                            <div
+                                style="width: 55px; height: 55px; background: rgba(255,255,255,0.03); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);">
+                                <i class="fa-solid fa-users" style="color: var(--light); font-size: 1.2rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: var(--light); margin: 0; font-size: 1.3rem; font-weight: 700;">Tim
+                                    BIPOL</h4>
+                                <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem; margin-top: 4px;">
+                                    Politeknik Negeri Jakarta</p>
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: flex; gap: 12px; margin-bottom: 2.5rem; flex-wrap: wrap; margin-top: -0.5rem;">
+                            <a href="../frontend/index.html"
+                                style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; background: linear-gradient(135deg, var(--primary), #ef4444); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(191, 30, 46, 0.4); min-width: 160px;"
+                                onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(191, 30, 46, 0.5)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(191, 30, 46, 0.4)';">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                Lihat Aplikasi
+                            </a>
+                            <a href="https://github.com/ifauzeee/BIPOL" target="_blank"
+                                style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; background: rgba(255,255,255,0.05); color: var(--light); text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.15); transition: all 0.3s ease; min-width: 160px;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(-3px)'; this.style.borderColor='var(--secondary)';"
+                                onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'; this.style.borderColor='rgba(255,255,255,0.15)';">
+                                <i class="fa-brands fa-github"></i>
+                                GitHub Repository
+                            </a>
+                        </div>
+
+                        <div
+                            style="padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 15px;">
+                            <span>&copy; 2025 BPL BIPOL TRACKER TEAM</span>
+                            <span
+                                style="width: 4px; height: 4px; background: var(--text-muted); border-radius: 50%;"></span>
+                            <span
+                                style="color: var(--secondary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-regular fa-comments"></i> Sesi Tanya Jawab
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger, TextPlugin, ScrollToPlugin);
+
+            const container = document.getElementById('presentation-container');
+            const savedSlideIndex = localStorage.getItem('bipol_slide_index');
+
+            if (savedSlideIndex) {
+                const slideWidth = window.innerWidth;
+                const targetScroll = parseInt(savedSlideIndex, 10) * slideWidth;
+                container.scrollLeft = targetScroll;
+            }
+
+            requestAnimationFrame(() => {
+                container.style.opacity = '1';
+                ScrollTrigger.refresh();
+            });
+
+            const welcomePopup = document.getElementById('welcome-popup');
+            const welcomeFullscreenBtn = document.getElementById('welcome-fullscreen-btn');
+            const welcomeSkip = document.getElementById('welcome-skip');
+
+            function closeWelcomePopup() {
+                welcomePopup.classList.add('hidden');
+            }
+
+            welcomeFullscreenBtn.addEventListener('click', () => {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+                closeWelcomePopup();
+            });
+
+            welcomeSkip.addEventListener('click', closeWelcomePopup);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !welcomePopup.classList.contains('hidden')) {
+                    e.preventDefault();
+                    closeWelcomePopup();
+                }
+            });
+
+            container.addEventListener('scroll', () => {
+                const slideWidth = window.innerWidth;
+                const currentIndex = Math.round(container.scrollLeft / slideWidth);
+                localStorage.setItem('bipol_slide_index', currentIndex);
+            });
+
+            const loadTl = gsap.timeline();
+            loadTl.from('.tagline', { y: 20, opacity: 0, duration: 1, ease: 'power3.out' })
+                .from('.main-title span', { y: 50, opacity: 0, rotationX: -90, transformOrigin: "0% 50% -50", duration: 1.2, ease: 'back.out(1.7)' }, '-=0.8')
+                .from('.main-title', { opacity: 0, duration: 0.5 }, '-=1.2')
+                .from('.subtitle', { x: -30, opacity: 0, duration: 1, ease: 'power2.out' }, '-=0.8')
+                .from('.divider', { scaleX: 0, duration: 1, ease: 'expo.inOut' }, '-=0.5')
+                .from('.author', { opacity: 0, y: 10, duration: 1 }, '-=0.5')
+                .from('.scroll-indicator', { opacity: 0, y: -20, duration: 1 }, '-=0.2');
+
+            const cursor = document.querySelector('.cursor');
+            const follower = document.querySelector('.cursor-follower');
+
+            const particleContainer = document.getElementById('particles-js');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 4 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = Math.random() > 0.5 ? 'var(--primary)' : 'var(--secondary)';
+                particle.style.opacity = Math.random() * 0.5;
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `floatParticle ${Math.random() * 10 + 10}s linear infinite`;
+                particleContainer.appendChild(particle);
+            }
+
+            const styleSheet = document.createElement("style");
+            styleSheet.innerText = `
+                @keyframes floatParticle {
+                    0% { transform: translateY(0) translateX(0); opacity: 0; }
+                    50% { opacity: 0.5; }
+                    100% { transform: translateY(-100vh) translateX(${Math.random() * 100 - 50}px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            document.addEventListener('mousemove', (e) => {
+                gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1 });
+                gsap.to(follower, { x: e.clientX - 10, y: e.clientY - 10, duration: 0.3 });
+            });
+
+            const glassCards = document.querySelectorAll('.glass');
+
+            glassCards.forEach(card => {
+                let ticking = false;
+
+                card.addEventListener('mousemove', (e) => {
+                    if (isNavigating || ticking) return;
+
+                    ticking = true;
+                    requestAnimationFrame(() => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        const rotateX = ((y - centerY) / centerY) * -5;
+                        const rotateY = ((x - centerX) / centerX) * 5;
+
+                        gsap.to(card, {
+                            duration: 0.5,
+                            rotateX: rotateX,
+                            rotateY: rotateY,
+                            transformPerspective: 1000,
+                            ease: 'power1.out',
+                            overwrite: 'auto'
+                        });
+                        ticking = false;
+                    });
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    gsap.to(card, {
+                        duration: 1,
+                        rotateX: 0,
+                        rotateY: 0,
+                        ease: 'elastic.out(1, 0.5)'
+                    });
+                });
+            });
+
+            const links = document.querySelectorAll('.glass, .social-btn, a, .block-node-item');
+            links.forEach(link => {
+                link.addEventListener('mouseenter', () => {
+                    gsap.to(follower, { scale: 2.5, backgroundColor: 'rgba(245, 158, 11, 0.05)', borderColor: 'var(--primary)', borderWidth: '1px' });
+                });
+                link.addEventListener('mouseleave', () => {
+                    gsap.to(follower, { scale: 1, backgroundColor: 'transparent', borderColor: '#f59e0b', borderWidth: '2px' });
+                });
+            });
+
+            const progressBar = document.getElementById('progress-bar');
+
+            container.addEventListener('scroll', () => {
+                const scrollLeft = container.scrollLeft;
+                const scrollWidth = container.scrollWidth - container.clientWidth;
+                progressBar.value = (scrollLeft / scrollWidth) * 100;
+            });
+
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const fullscreenIcon = fullscreenBtn.querySelector('i');
+            const fullscreenTooltip = fullscreenBtn.querySelector('.tooltip');
+
+            function isFullscreen() {
+                const apiFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement ||
+                    document.mozFullScreenElement || document.msFullscreenElement);
+
+                const widthDiff = Math.abs(window.innerWidth - screen.width);
+                const heightDiff = Math.abs(window.innerHeight - screen.height);
+                const nativeFullscreen = widthDiff <= 5 && heightDiff <= 5;
+
+                return apiFullscreen || nativeFullscreen;
+            }
+
+            function requestFullscreen() {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            }
+
+            function exitFullscreen() {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+
+            function updateFullscreenButton() {
+                const inFullscreen = isFullscreen();
+
+                localStorage.setItem('bipol_fullscreen', inFullscreen ? 'true' : 'false');
+
+                if (inFullscreen) {
+                    fullscreenBtn.classList.add('hidden');
+                    fullscreenIcon.className = 'fa-solid fa-compress';
+                    fullscreenTooltip.textContent = 'Keluar dari Layar Penuh';
+                } else {
+                    fullscreenBtn.classList.remove('hidden');
+                    fullscreenIcon.className = 'fa-solid fa-expand';
+                    fullscreenTooltip.textContent = 'Tekan untuk Layar Penuh';
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!isFullscreen()) {
+                    requestFullscreen();
+                } else {
+                    exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', updateFullscreenButton);
+            document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+            document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+            document.addEventListener('MSFullscreenChange', updateFullscreenButton);
+            window.addEventListener('resize', updateFullscreenButton);
+
+            const savedFullscreen = localStorage.getItem('bipol_fullscreen');
+            if (savedFullscreen === 'true' && !isFullscreen()) {
+                const welcomeTitle = document.querySelector('.welcome-title');
+                const welcomeSubtitle = document.querySelector('.welcome-subtitle');
+                const welcomeBtn = document.querySelector('#welcome-fullscreen-btn');
+
+                if (welcomeTitle) welcomeTitle.innerHTML = 'Selamat Datang <span style="color: var(--primary);">Kembali</span>!';
+                if (welcomeSubtitle) welcomeSubtitle.textContent = 'Browser mengharuskan interaksi untuk kembali ke mode layar penuh.';
+                if (welcomeBtn) {
+                    welcomeBtn.innerHTML = '<i class="fa-solid fa-expand"></i> Lanjutkan Layar Penuh';
+                    gsap.to(welcomeBtn, { scale: 1.05, duration: 0.5, yoyo: true, repeat: 3 });
+                }
+            }
+
+            updateFullscreenButton();
+
+            const commandPalette = document.getElementById('command-palette');
+            const commandInput = document.getElementById('command-input');
+            const slideListContainer = document.getElementById('slide-list');
+            const allSlides = document.querySelectorAll('.slide');
+            const totalSlides = allSlides.length;
+            let selectedIndex = 0;
+
+            const slideData = [];
+            allSlides.forEach((slide, index) => {
+                let title = '';
+
+                const sectionTitle = slide.querySelector('.section-title');
+                if (sectionTitle) {
+                    title = sectionTitle.textContent.trim();
+                } else {
+                    const mainTitle = slide.querySelector('.main-title');
+                    if (mainTitle) {
+                        title = mainTitle.textContent.trim();
+                    } else {
+                        title = slide.id ? slide.id.replace('slide-', '').replace(/-/g, ' ') : `Slide ${index + 1}`;
+                    }
+                }
+
+                slideData.push({
+                    index: index,
+                    num: index + 1,
+                    title: title
+                });
+            });
+
+            function renderSlideList(filter = '') {
+                slideListContainer.innerHTML = '';
+                const filterLower = filter.toLowerCase();
+
+                slideData.forEach((slide, i) => {
+                    const matchesFilter = filter === '' ||
+                        slide.title.toLowerCase().includes(filterLower) ||
+                        slide.num.toString().includes(filter);
+
+                    const item = document.createElement('div');
+                    item.className = 'slide-item' + (matchesFilter ? '' : ' hidden');
+                    item.dataset.index = slide.index;
+                    item.innerHTML = `
+                        <span class="slide-num">${slide.num}</span>
+                        <span class="slide-name">${slide.title}</span>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        jumpToSlide(slide.index);
+                    });
+
+                    slideListContainer.appendChild(item);
+                });
+
+                selectedIndex = 0;
+                updateSelection();
+            }
+
+            function updateSelection() {
+                const items = slideListContainer.querySelectorAll('.slide-item:not(.hidden)');
+                items.forEach((item, i) => {
+                    item.classList.toggle('selected', i === selectedIndex);
+                    if (i === selectedIndex) {
+                        item.scrollIntoView({ block: 'nearest' });
+                    }
+                });
+            }
+
+            function jumpToSlide(targetIndex) {
+                const slideWidth = window.innerWidth;
+                const targetScroll = targetIndex * slideWidth;
+
+                gsap.to(container, {
+                    scrollTo: { x: targetScroll },
+                    duration: 0.6,
+                    ease: 'power2.out'
+                });
+
+                localStorage.setItem('bipol_slide_index', targetIndex);
+                closeCommandPalette();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    openCommandPalette();
+                }
+
+                if (e.key === 'Escape' && commandPalette.classList.contains('active')) {
+                    closeCommandPalette();
+                }
+            });
+
+            function openCommandPalette() {
+                commandPalette.classList.add('active');
+                commandInput.value = '';
+                renderSlideList();
+                commandInput.focus();
+            }
+
+            function closeCommandPalette() {
+                commandPalette.classList.remove('active');
+                commandInput.blur();
+            }
+
+            commandPalette.addEventListener('click', (e) => {
+                if (e.target === commandPalette) {
+                    closeCommandPalette();
+                }
+            });
+
+            commandInput.addEventListener('input', () => {
+                renderSlideList(commandInput.value);
+            });
+
+            commandInput.addEventListener('keydown', (e) => {
+                const visibleItems = slideListContainer.querySelectorAll('.slide-item:not(.hidden)');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, visibleItems.length - 1);
+                    updateSelection();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, 0);
+                    updateSelection();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (visibleItems.length > 0) {
+                        const selectedItem = visibleItems[selectedIndex];
+                        if (selectedItem) {
+                            jumpToSlide(parseInt(selectedItem.dataset.index, 10));
+                        }
+                    }
+                }
+            });
+
+            const slides = gsap.utils.toArray('.slide');
+
+            slides.forEach((slide, i) => {
+                if (i === 0) return;
+
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: slide,
+                        start: 'left 60%',
+                        horizontal: true,
+                        scroller: '#presentation-container',
+                        toggleActions: 'play reverse play reverse'
+                    }
+                });
+
+                const title = slide.querySelector('.section-title');
+                if (title) {
+                    tl.fromTo(title,
+                        { x: -50, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+                    );
+                }
+
+                const images = slide.querySelectorAll('img');
+                if (images.length > 0) {
+                    tl.fromTo(images,
+                        { scale: 0.9, opacity: 0, z: -100 },
+                        { scale: 1, opacity: 1, z: 0, duration: 1, ease: 'power2.out', stagger: 0.1 },
+                        '-=0.8'
+                    );
+                }
+
+                const cards = slide.querySelectorAll('.glass, .feat-card, .card');
+                if (cards.length > 0) {
+                    tl.fromTo(cards,
+                        { y: 50, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power2.out' },
+                        '-=0.8'
+                    );
+                }
+
+                const texts = slide.querySelectorAll('p, li');
+                if (texts.length > 0) {
+                    tl.fromTo(texts,
+                        { y: 20, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: 'power2.out' },
+                        '-=0.5'
+                    );
+                }
+
+                const badges = slide.querySelectorAll('.badge');
+                if (badges.length > 0) {
+                    tl.fromTo(badges,
+                        { scale: 0, rotation: -180 },
+                        { scale: 1, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.5)' },
+                        '-=1'
+                    );
+                }
+
+                const icons = slide.querySelectorAll('.feat-card i, .glass i, .fa-solid, .fa-brands');
+                if (icons.length > 0) {
+                    tl.fromTo(icons,
+                        { scale: 0, rotation: 360 },
+                        { scale: 1, rotation: 0, duration: 0.8, stagger: 0.1, ease: 'back.out(2)' },
+                        '-=0.5'
+                    );
+                }
+            });
+
+        });
+
+        gsap.utils.toArray('.block-section .fa-arrow-down').forEach(arrow => {
+            gsap.to(arrow, {
+                y: 5,
+                opacity: 1,
+                repeat: -1,
+                yoyo: true,
+                duration: 1,
+                ease: 'sine.inOut'
+            });
+        });
+
+        gsap.from('.arch-arrow', {
+            scrollTrigger: {
+                trigger: '#slide-tech',
+                start: 'left 60%',
+                horizontal: true,
+                scroller: '#presentation-container'
+            },
+            scale: 0,
+            opacity: 0,
+            rotation: -180,
+            duration: 0.8,
+            stagger: 0.2,
+            delay: 0.6,
+            ease: 'back.out(1.7)'
+        });
+
+        gsap.to('.circle-1', {
+            x: 'random(-50, 50)',
+            y: 'random(-50, 50)',
+            scale: 'random(0.8, 1.2)',
+            duration: 5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        });
+
+        gsap.to('.circle-2', {
+            x: 'random(-30, 30)',
+            y: 'random(-30, 30)',
+            scale: 'random(0.9, 1.1)',
+            duration: 4,
+            repeat: -1,
+            yoyo: true,
+            delay: 1,
+            ease: 'sine.inOut'
+        });
+
+        let isNavigating = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (!['ArrowRight', 'ArrowLeft', 'Space'].includes(e.key) && e.code !== 'Space') return;
+
+            e.preventDefault();
+            if (document.activeElement) document.activeElement.blur();
+
+            if (isNavigating) return;
+
+            const container = document.getElementById('presentation-container');
+            const slides = document.querySelectorAll('.slide');
+            const slideWidth = window.innerWidth;
+
+            let currentIndex = Math.round(container.scrollLeft / slideWidth);
+
+            if (e.key === 'ArrowRight' || e.code === 'Space') {
+                if (e.code === 'Space') e.preventDefault();
+
+                if (currentIndex < slides.length - 1) {
+                    isNavigating = true;
+                    currentIndex++;
+
+                    gsap.to(container, {
+                        scrollTo: { x: currentIndex * slideWidth },
+                        duration: 0.6,
+                        ease: "power2.out",
+                        onComplete: () => isNavigating = false
+                    });
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    isNavigating = true;
+                    currentIndex--;
+
+                    gsap.to(container, {
+                        scrollTo: { x: currentIndex * slideWidth },
+                        duration: 0.6,
+                        ease: "power2.out",
+                        onComplete: () => isNavigating = false
+                    });
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
