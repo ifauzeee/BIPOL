@@ -508,7 +508,7 @@ export function updateMarker(bus) {
 const notifiedState = new Map();
 
 function checkAndShowArrivalNotification(bus, stop) {
-    if (stop.dist > 0.25) return;
+    if (stop.dist > 0.25 || bus.speed <= 0) return;
 
     const key = `${bus.bus_id}-${stop.title}`;
     const now = Date.now();
