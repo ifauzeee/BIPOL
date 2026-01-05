@@ -94,3 +94,35 @@ exports.deleteInfo = async (req, res) => {
         res.status(500).json({ error: 'Failed to delete announcement' });
     }
 };
+
+exports.getLegacyAnnouncements = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('app_info')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const formattedData = data.map((item, index) => ({
+            created_by: "Admin", // Legacy app expects this field
+            id: index + 1,       // Legacy app expects Int ID
+            message: item.content, // Map content to message
+            time: item.created_at
+        }));
+
+        res.json({
+            data: formattedData,
+            message: "Success",
+            statusCode: 200
+        });
+    } catch (err) {
+        console.error('Get legacy announcements error:', err.message);
+        res.status(500).json({
+            data: [],
+            message: "Failed to fetch data",
+            statusCode: 500
+        });
+    }
+};

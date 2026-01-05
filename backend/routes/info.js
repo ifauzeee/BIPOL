@@ -5,6 +5,7 @@ const requireAuth = require('../middleware/auth');
 
 router.get('/info', infoController.getInfo);
 router.get('/config', infoController.getConfig);
+router.get('/announcement', infoController.getLegacyAnnouncements);
 
 router.get('/admin/info', requireAuth, infoController.adminGetInfo);
 router.post('/info', requireAuth, infoController.createInfo);

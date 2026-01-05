@@ -60,7 +60,20 @@ exports.getLocations = async (req, res) => {
             if (!latest[d.bus_id]) latest[d.bus_id] = d;
         });
 
-        res.json({ data: Object.values(latest) });
+        const isLegacyMobile = req.headers['authorization'] === 'cff2f609d3accf61df924590eac88bc2e5107eb3df47af97576f3ab6139e59bc';
+
+        res.json({
+            data: Object.values(latest).map(bus => {
+                if (isLegacyMobile) {
+                    return {
+                        ...bus,
+                        id: 1, // Legacy app expects Int ID, but DB uses UUID
+                        timestamp: bus.created_at // Legacy app expects 'timestamp'
+                    };
+                }
+                return bus;
+            })
+        });
     } catch (err) {
         console.error('Get bus location error:', err.message);
         res.status(500).json({ error: 'Failed to fetch locations' });
