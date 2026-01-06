@@ -3,6 +3,7 @@ const sanitizeInput = require('../utils/sanitizer');
 const validate = require('../utils/validators');
 const { setToCache } = require('../utils/cache');
 const { checkGeofence } = require('../services/geofenceService');
+const logger = require('../utils/logger');
 
 exports.trackBus = async (req, res) => {
     try {
@@ -40,42 +41,73 @@ exports.trackBus = async (req, res) => {
 
         res.status(200).send("OK");
     } catch (err) {
-        console.error(`❌ Track Error:`, err.message);
+        logger.error('Track error', { error: err.message });
         res.status(500).send("Error");
     }
 };
 
 exports.getLocations = async (req, res) => {
     try {
-        const { data, error } = await supabase
+        // Step 1: Scan for active bus IDs (lightweight query)
+        const { data: idList, error: scanError } = await supabase
             .from('bipol_tracker')
-            .select('*')
+            .select('bus_id')
             .order('created_at', { ascending: false })
-            .limit(20);
+            .limit(20000); // Increased limit to 20k to catch sleeping buses
 
-        if (error) throw error;
+        if (scanError) throw scanError;
 
-        const latest = {};
-        data.forEach(d => {
-            if (!latest[d.bus_id]) latest[d.bus_id] = d;
+        let uniqueBusIds = [...new Set(idList.map(item => item.bus_id))];
+
+        // DYNAMIC FLEET DISCOVERY: Fetch all registered buses from 'drivers' table
+        const { data: fleetData, error: fleetError } = await supabase
+            .from('drivers')
+            .select('bus_plate');
+
+        if (!fleetError && fleetData) {
+            const knownFleet = fleetData.map(d => d.bus_plate);
+
+            // Check for missing buses
+            const missingBuses = knownFleet.filter(id => !uniqueBusIds.includes(id));
+            if (missingBuses.length > 0) {
+                // console.log(`⚠️ Force checking missing buses from Fleet: ${missingBuses.join(', ')}`);
+                uniqueBusIds = [...uniqueBusIds, ...missingBuses];
+            }
+        }
+
+        // Step 2: Fetch latest details for each unique bus
+        const promises = uniqueBusIds.map(async (id) => {
+            const { data, error } = await supabase
+                .from('bipol_tracker')
+                .select('*')
+                .eq('bus_id', id)
+                .neq('latitude', 0) // Filter invalid GPS
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error || !data || data.length === 0) return null;
+            return data[0];
         });
+
+        const results = await Promise.all(promises);
+        const buses = results.filter(b => b !== null);
 
         const isLegacyMobile = req.headers['authorization'] === 'cff2f609d3accf61df924590eac88bc2e5107eb3df47af97576f3ab6139e59bc';
 
         res.json({
-            data: Object.values(latest).map(bus => {
+            data: buses.map((bus, index) => {
                 if (isLegacyMobile) {
                     return {
                         ...bus,
-                        id: 1, // Legacy app expects Int ID, but DB uses UUID
-                        timestamp: bus.created_at // Legacy app expects 'timestamp'
+                        id: index + 1, // Unique Int ID for each bus
+                        timestamp: bus.created_at
                     };
                 }
                 return bus;
             })
         });
     } catch (err) {
-        console.error('Get bus location error:', err.message);
+        logger.error('Get bus location error', { error: err.message });
         res.status(500).json({ error: 'Failed to fetch locations' });
     }
 };
@@ -90,7 +122,7 @@ exports.getBusPlates = async (req, res) => {
         if (error) throw error;
         res.json(data.map(d => d.bus_plate));
     } catch (err) {
-        console.error('Get bus plates error:', err.message);
+        logger.error('Get bus plates error', { error: err.message });
         res.status(500).json({ error: 'Failed to fetch bus list' });
     }
 };

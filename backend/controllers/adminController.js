@@ -5,6 +5,7 @@ const validate = require('../utils/validators');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { getAllSettings, updateSettings } = require('../services/settingsService');
+const logger = require('../utils/logger');
 
 exports.getLogs = async (req, res) => {
     try {
@@ -21,7 +22,7 @@ exports.getLogs = async (req, res) => {
         setToCache('admin_logs', data);
         res.json(data);
     } catch (err) {
-        console.error('Get logs error:', err.message);
+        logger.error('Get logs error:', err.message);
         res.status(500).json({ error: 'Failed to fetch logs' });
     }
 };
@@ -36,7 +37,7 @@ exports.getDrivers = async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        console.error('Get drivers error:', err.message);
+        logger.error('Get drivers error:', err.message);
         res.status(500).json({ error: 'Failed to fetch drivers' });
     }
 };
@@ -82,7 +83,7 @@ exports.createDriver = async (req, res) => {
 
         res.json({ success: true, data: data[0], generatedPassword: finalPassword });
     } catch (err) {
-        console.error('Create driver error:', err.message);
+        logger.error('Create driver error:', err.message);
         res.status(500).json({ error: 'Failed to add driver' });
     }
 };
@@ -94,7 +95,7 @@ exports.deleteDriver = async (req, res) => {
         if (error) throw error;
         res.json({ success: true });
     } catch (err) {
-        console.error('Delete driver error:', err.message);
+        logger.error('Delete driver error:', err.message);
         res.status(500).json({ error: 'Failed to delete driver' });
     }
 };
@@ -113,7 +114,7 @@ exports.resetDriverPassword = async (req, res) => {
         if (error) throw error;
         res.json({ success: true, newPassword: rawPassword });
     } catch (err) {
-        console.error('Reset driver password error:', err.message);
+        logger.error('Reset driver password error:', err.message);
         res.status(500).json({ error: 'Failed to reset password' });
     }
 };
@@ -151,7 +152,7 @@ exports.updateDriver = async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error('Update driver error:', err.message);
+        logger.error('Update driver error:', err.message);
         res.status(500).json({ error: 'Failed to update driver' });
     }
 };
@@ -173,7 +174,7 @@ exports.getGeofenceEvents = async (req, res) => {
 
         res.json(formatted);
     } catch (err) {
-        console.error('Get geofence events error:', err.message);
+        logger.error('Get geofence events error:', err.message);
         res.status(500).json({ error: 'Failed to fetch geofence events' });
     }
 };
@@ -183,7 +184,7 @@ exports.getSettings = async (req, res) => {
         const settings = await getAllSettings();
         res.json(settings);
     } catch (err) {
-        console.error('Get settings error:', err.message);
+        logger.error('Get settings error:', err.message);
         res.status(500).json({ error: 'Failed to fetch settings' });
     }
 };
@@ -200,7 +201,7 @@ exports.updateSettings = async (req, res) => {
         await updateSettings(updates);
         res.json({ success: true });
     } catch (err) {
-        console.error('Update settings error:', err.message);
+        logger.error('Update settings error:', err.message);
         res.status(500).json({ error: 'Failed to update settings' });
     }
 };

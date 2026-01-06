@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const logger = require('../utils/logger');
 
 let settingsCache = {};
 let lastFetch = 0;
@@ -14,7 +15,7 @@ async function loadSettings() {
     try {
         const { data, error } = await supabase.from('app_settings').select('*');
         if (error) {
-            console.error('Failed to load settings from DB:', error.message);
+            logger.error('Failed to load settings from DB', { error: error.message });
             if (Object.keys(settingsCache).length === 0) {
                 settingsCache = { ...DEFAULTS };
             }
@@ -34,9 +35,9 @@ async function loadSettings() {
 
         settingsCache = newCache;
         lastFetch = Date.now();
-        console.log('⚙️ Settings loaded:', settingsCache);
+        logger.settings.loaded(settingsCache);
     } catch (err) {
-        console.error('Settings load error:', err);
+        logger.error('Settings load error', { error: err.message });
     }
 }
 
@@ -81,7 +82,7 @@ async function updateSettings(updates) {
 
         return data;
     } catch (err) {
-        console.error('Update settings error:', err.message);
+        logger.error('Update settings error', { error: err.message });
         throw err;
     }
 }
@@ -93,3 +94,4 @@ module.exports = {
     getAllSettings,
     updateSettings
 };
+

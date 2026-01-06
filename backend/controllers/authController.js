@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const supabase = require('../config/supabase');
 const validate = require('../utils/validators');
 const sanitizeInput = require('../utils/sanitizer');
+const logger = require('../utils/logger');
 
 exports.login = async (req, res) => {
     try {
@@ -43,11 +44,11 @@ exports.login = async (req, res) => {
             }
         }
 
-        console.warn(`[Login] Gagal: '${username}' tidak ditemukan di Admin maupun Driver, atau password salah.`);
+        logger.warn(`Login failed: '${username}' not found or wrong password`);
         return res.status(401).json({ success: false, message: 'Username/Plat atau Password salah' });
 
     } catch (err) {
-        console.error('Login error:', err.message);
+        logger.error('Login error', { error: err.message });
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
@@ -72,7 +73,7 @@ exports.driverLogin = async (req, res) => {
         req.session.driver = { id: data.id, bus_plate: data.bus_plate, name: data.driver_name };
         res.json({ success: true });
     } catch (err) {
-        console.error('Driver login error:', err.message);
+        logger.error('Driver login error', { error: err.message });
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -96,7 +97,7 @@ exports.changePassword = async (req, res) => {
         if (error) throw error;
         res.json({ success: true, message: 'Password updated' });
     } catch (err) {
-        console.error('Change password error:', err.message);
+        logger.error('Change password error', { error: err.message });
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
@@ -115,7 +116,7 @@ exports.driverStatus = (req, res) => {
 
 exports.logout = (req, res) => {
     req.session.destroy((err) => {
-        if (err) console.error('Logout error:', err);
+        if (err) logger.error('Logout error', { error: err.message });
         res.clearCookie('connect.sid');
         res.json({ success: true });
     });

@@ -14,6 +14,7 @@ const supabase = require('./config/supabase');
 const { startUdpServer } = require('./services/udpService');
 const { setIo } = require('./services/geofenceService');
 const { startCleanupJobs } = require('./services/cleanup');
+const logger = require('./utils/logger');
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
@@ -172,7 +173,7 @@ app.get('/driver/dashboard', (req, res) => {
 
 
 app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
+    logger.error('Unhandled error', { error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Internal server error' });
 });
 
@@ -180,32 +181,32 @@ const udpServer = startUdpServer(io);
 startCleanupJobs();
 
 io.on('connection', (socket) => {
-    console.log(`🔌 Client connected: ${socket.id}`);
+    logger.socket.connect(socket.id);
     socket.on('disconnect', (reason) => {
-        console.log(`❌ Client disconnected: ${socket.id} (${reason})`);
+        logger.socket.disconnect(socket.id, reason);
     });
 });
 
 process.on('SIGTERM', () => {
-    console.log('🛑 SIGTERM received. Shutting down gracefully...');
+    logger.server.shutdown();
     server.close(() => {
         udpServer.close();
-        console.log('✅ Server closed');
+        logger.server.closed();
         process.exit(0);
     });
 });
 
 process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
+    logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection', { reason: String(reason) });
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 Server Socket.io HIDUP di Port ${PORT}`);
+    logger.server.start(PORT);
     const retention = parseInt(process.env.DATA_RETENTION_HOURS) || 24;
-    console.log(`🧹 Auto-Cleanup scheduler aktif (${retention} Jam retensi)`);
-    console.log(`🔒 Security features checked.`);
+    logger.server.cleanup(retention);
+    logger.server.security();
 });

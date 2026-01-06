@@ -1,5 +1,6 @@
 const supabase = require('../config/supabase');
 const { memoryCache } = require('../utils/cache');
+const logger = require('../utils/logger');
 
 let geofenceZones = [];
 let ioInstance = null;
@@ -13,9 +14,9 @@ async function loadGeofences() {
         const { data, error } = await supabase.from('geofences').select('*');
         if (error) throw error;
         geofenceZones = data || [];
-        console.log(`🌍 Loaded ${geofenceZones.length} Geofence Zones.`);
+        logger.geofence.loaded(geofenceZones.length);
     } catch (err) {
-        console.error('❌ Failed to load geofences:', err.message);
+        logger.error('Failed to load geofences', { error: err.message });
     }
 }
 
@@ -51,7 +52,7 @@ async function logGeofenceEvent(bus_id, zone_id, event_type) {
             ioInstance.emit('geofence_event', { bus_id, zoneName, event_type, time: new Date() });
         }
     } catch (err) {
-        console.error("❌ Geofence Log Error:", err.message);
+        logger.error('Geofence log error', { error: err.message });
     }
 }
 
@@ -72,13 +73,13 @@ async function checkGeofence(bus_id, lat, lon) {
 
     if (currentlyInsideZoneId !== previousZoneId) {
         if (previousZoneId) {
-            console.log(`⚠️ ${bus_id} EXITED Zone ${previousZoneId}`);
+            logger.geofence.exited(bus_id, previousZoneId);
             await logGeofenceEvent(bus_id, previousZoneId, 'EXIT');
         }
 
         if (currentlyInsideZoneId) {
             const zoneName = geofenceZones.find(z => z.id === currentlyInsideZoneId)?.name;
-            console.log(`✅ ${bus_id} ENTERED Zone ${currentlyInsideZoneId} (${zoneName})`);
+            logger.geofence.entered(bus_id, currentlyInsideZoneId, zoneName);
             await logGeofenceEvent(bus_id, currentlyInsideZoneId, 'ENTER');
         }
 
@@ -91,3 +92,4 @@ module.exports = {
     checkGeofence,
     geofenceZones
 };
+

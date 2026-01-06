@@ -1,12 +1,5 @@
 const supabase = require('../config/supabase');
-
-function getLogTime() {
-    return new Date().toLocaleString('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'medium',
-        timeZone: 'Asia/Jakarta'
-    });
-}
+const logger = require('../utils/logger');
 
 async function cleanupOldData() {
     try {
@@ -19,9 +12,9 @@ async function cleanupOldData() {
             .lt('created_at', cutoffDate);
 
         if (error) throw error;
-        console.log(`🧹 [${getLogTime()}] Auto-Cleanup: Deleted data older than ${retentionHours}h.`);
+        logger.cleanup.done(retentionHours);
     } catch (err) {
-        console.error(`❌ [${getLogTime()}] Cleanup Failed:`, err.message);
+        logger.error('Cleanup failed', { error: err.message });
     }
 }
 

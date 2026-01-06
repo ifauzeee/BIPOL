@@ -567,6 +567,46 @@
             document.getElementById('offline-indicator').classList.add('show');
         }
     </script>
+    <script>
+        // Android App Promo Popup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if already shown in this session
+            if (!sessionStorage.getItem('appPromoShown')) {
+                setTimeout(() => {
+                    Swal.fire({
+                        title: '<strong>BIPOL Mobile Tersedia!</strong>',
+                        html: `
+                            <div style="text-align:center;">
+                                <img src="/images/pwa-icon-192.png" style="width:80px; margin-bottom:15px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                                <p style="font-size:1.1rem; color:#475569; margin-bottom:20px;">
+                                    Akses pelacakan bus lebih cepat dan stabil langsung dari HP Android Anda.
+                                </p>
+                                <a href="/apk/app-debug.apk" class="swal2-confirm swal2-styled" 
+                                   style="display:inline-block; background-color:#10b981; text-decoration:none; padding:12px 24px; font-size:1.1rem; border-radius:8px; width:100%; box-sizing:border-box; margin-bottom:10px;">
+                                    <i class="fa-brands fa-android"></i> Download App (APK)
+                                </a>
+                                <p style="font-size:0.9rem; color:#94a3b8; margin-top:10px;">
+                                    Versi 1.0 (Beta) • Gratis
+                                </p>
+                            </div>
+                        `,
+                        showCloseButton: true,
+                        showCancelButton: true,
+                        focusConfirm: false,
+                        confirmButtonText: '<i class="fa-solid fa-thumbs-up"></i> Download Sekarang',
+                        confirmButtonColor: '#10b981',
+                        cancelButtonText: 'Nanti Saja',
+                        cancelButtonColor: '#64748b',
+                        showConfirmButton: false, // Hidden because we use custom link button inside HTML
+                        backdrop: `rgba(0,0,0,0.4)`
+                    });
+                    
+                    // Mark as shown
+                    sessionStorage.setItem('appPromoShown', 'true');
+                }, 1500); // Delay 1.5s for smooth entry
+            }
+        });
+    </script>
 </body>
 
 </html>

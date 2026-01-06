@@ -1,6 +1,7 @@
 const supabase = require('../config/supabase');
 const sanitizeInput = require('../utils/sanitizer');
 const validate = require('../utils/validators');
+const logger = require('../utils/logger');
 
 exports.createLostItem = async (req, res) => {
     try {
@@ -32,7 +33,7 @@ exports.createLostItem = async (req, res) => {
 
         res.json({ success: true, data: data[0] });
     } catch (err) {
-        console.error('Create lost item error:', err.message);
+        logger.error('Create lost item error:', err.message);
         res.status(500).json({ error: 'Failed to submit report' });
     }
 };
@@ -47,7 +48,7 @@ exports.getLostItems = async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        console.error('Get lost items error:', err.message);
+        logger.error('Get lost items error:', err.message);
         res.status(500).json({ error: 'Failed to fetch lost items' });
     }
 };
@@ -75,7 +76,7 @@ exports.updateLostItemStatus = async (req, res) => {
 
         res.json({ success: true, data: data[0] });
     } catch (err) {
-        console.error('Update lost item error:', err.message);
+        logger.error('Update lost item error:', err.message);
         res.status(500).json({ error: 'Failed to update status' });
     }
 };
@@ -96,7 +97,7 @@ exports.deleteLostItem = async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error('Delete lost item error:', err.message);
+        logger.error('Delete lost item error:', err.message);
         res.status(500).json({ error: 'Failed to delete report' });
     }
 };
@@ -128,7 +129,7 @@ exports.createFeedback = async (req, res) => {
 
         res.json({ success: true, data: data[0] });
     } catch (err) {
-        console.error('Submit feedback error:', err.message);
+        logger.error('Submit feedback error:', err.message);
         res.status(500).json({ error: 'Gagal mengirim masukan' });
     }
 };
@@ -143,7 +144,7 @@ exports.getFeedback = async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        console.error('Fetch feedback error:', err.message);
+        logger.error('Fetch feedback error:', err.message);
         res.status(500).json({ error: 'Failed to fetch feedback' });
     }
 };
@@ -163,7 +164,7 @@ exports.deleteFeedback = async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error('Delete feedback error:', err.message);
+        logger.error('Delete feedback error:', err.message);
         res.status(500).json({ error: 'Failed to delete feedback' });
     }
 };
@@ -184,7 +185,7 @@ exports.getDriverLostItems = async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        console.error('Fetch driver lost items error:', err.message);
+        logger.error('Fetch driver lost items error:', err.message);
         res.status(500).json({ error: 'Failed to fetch items' });
     }
 };
@@ -219,7 +220,7 @@ exports.resolveDriverLostItem = async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error('Resolve item error:', err.message);
+        logger.error('Resolve item error:', err.message);
         res.status(500).json({ error: 'Failed to resolve item' });
     }
 };

@@ -1,6 +1,7 @@
 const supabase = require('../config/supabase');
 const sanitizeInput = require('../utils/sanitizer');
 const { getFromCache, setToCache, memoryCache } = require('../utils/cache');
+const logger = require('../utils/logger');
 
 exports.getInfo = async (req, res) => {
     try {
@@ -17,7 +18,7 @@ exports.getInfo = async (req, res) => {
         setToCache('public_info', data);
         res.json(data);
     } catch (err) {
-        console.error('Get info error:', err.message);
+        logger.error('Get info error', { error: err.message });
         res.status(500).json({ error: 'Failed to fetch info' });
     }
 };
@@ -40,7 +41,7 @@ exports.adminGetInfo = async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        console.error('Get admin info error:', err.message);
+        logger.error('Get admin info error', { error: err.message });
         res.status(500).json({ error: 'Failed to fetch info' });
     }
 };
@@ -69,7 +70,7 @@ exports.createInfo = async (req, res) => {
 
         res.json({ success: true, data });
     } catch (err) {
-        console.error('Create info error:', err.message);
+        logger.error('Create info error', { error: err.message });
         res.status(500).json({ error: 'Failed to create announcement' });
     }
 };
@@ -90,7 +91,7 @@ exports.deleteInfo = async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error('Delete info error:', err.message);
+        logger.error('Delete info error', { error: err.message });
         res.status(500).json({ error: 'Failed to delete announcement' });
     }
 };
@@ -118,7 +119,7 @@ exports.getLegacyAnnouncements = async (req, res) => {
             statusCode: 200
         });
     } catch (err) {
-        console.error('Get legacy announcements error:', err.message);
+        logger.error('Get legacy announcements error', { error: err.message });
         res.status(500).json({
             data: [],
             message: "Failed to fetch data",
